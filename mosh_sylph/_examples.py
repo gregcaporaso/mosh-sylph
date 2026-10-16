@@ -68,3 +68,27 @@ def _sketch_example(use):
         use.UsageInputs(reads=reads, threads=1),
         use.UsageOutputNames(sketches='sketches'),
     )
+
+
+def _database_factory():
+    # TODO: this is AI-generated code; human review pending
+    from mosh_sylph._formats import SylphDatabaseFormat
+    return Artifact.import_data('SylphDatabase', _data_path('fixture.syl2db'),
+                                SylphDatabaseFormat)
+
+
+def _profile_example(use):
+    # TODO: this is AI-generated code; human review pending
+    reads = use.init_artifact('reads', _reads_factory)
+    database = use.init_artifact('sylph-database', _database_factory)
+    sketches, = use.action(
+        use.UsageAction('sylph', 'sketch'),
+        use.UsageInputs(reads=reads, threads=1),
+        use.UsageOutputNames(sketches='sketches'),
+    )
+    use.action(
+        use.UsageAction('sylph', 'profile'),
+        use.UsageInputs(sketches=sketches, database=database, threads=1,
+                        estimate_unknown=True),
+        use.UsageOutputNames(profile='sylph-profile'),
+    )

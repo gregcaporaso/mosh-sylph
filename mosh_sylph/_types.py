@@ -13,3 +13,4 @@ from qiime2.plugin import SemanticType
 SylphDatabase = SemanticType('SylphDatabase')
 SylphTaxonomy = SemanticType('SylphTaxonomy')
 SylphSketches = SemanticType('SylphSketches')
+SylphProfile = SemanticType('SylphProfile')

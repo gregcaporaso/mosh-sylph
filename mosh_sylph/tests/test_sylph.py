@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 
 import filecmp
+import io
 import os
 import shutil
 import subprocess
@@ -20,6 +21,7 @@ from q2_types.per_sample_sequences import SingleLanePerSamplePairedEndFastqDirFm
 
 from mosh_sylph import _examples as ex
 from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphDatabaseFormat,
+                                 SylphProfileDirFmt, SylphProfileFormat,
                                  SylphSketchesDirFmt, SylphSketchFormat)
 from mosh_sylph._sylph import _database_url
 
@@ -131,3 +133,94 @@ class SylphSketchesFormatTests(TestPluginBase):
             fmt = SylphSketchesDirFmt(d, mode='r')
             fmt.validate()
             self.assertEqual(list(fmt.sample_paths()), ['a', 'b'])
+
+
+class _SearchTestBase(TestPluginBase):
+    """Sketches of the fixture reads and the fixture database, with a helper
+    that runs sylph directly on the same files."""
+    package = 'mosh_sylph.tests'
+
+    @classmethod
+    def setUpClass(cls):
+        # TODO: this is AI-generated code; human review pending
+        super().setUpClass()
+        from mosh_sylph.plugin_setup import plugin
+        cls.sketches, = plugin.methods['sketch'](ex._reads_factory(), threads=1)
+        cls.database = ex._database_factory()
+        cls.sketch_paths = list(
+            cls.sketches.view(SylphSketchesDirFmt).sample_paths().values())
+        cls.database_path = os.path.join(
+            str(cls.database.view(SylphDatabaseDirFmt)), 'database.syl2db')
+
+    def _direct(self, command, *options, sketch_paths=None):
+        # TODO: this is AI-generated code; human review pending
+        """Output of `sylph <command>` run directly, as text."""
+        with tempfile.TemporaryDirectory() as d:
+            out = os.path.join(d, 'out.tsv')
+            _sylph(command, '-t', '1', *options, '-d', self.database_path,
+                   '-o', out, *(sketch_paths or self.sketch_paths))
+            with open(out) as fh:
+                return fh.read()
+
+
+class ProfileTests(_SearchTestBase):
+
+    def _profile(self, **kwargs):
+        # TODO: this is AI-generated code; human review pending
+        result, = self.plugin.methods['profile'](
+            self.sketches, self.database, threads=1, **kwargs)
+        self.assertEqual(str(result.type), 'SylphProfile')
+        with open(os.path.join(str(result.view(SylphProfileDirFmt)),
+                               'profile.tsv')) as fh:
+            return fh.read()
+
+    def test_same_as_sylph_profile(self):
+        # TODO: this is AI-generated code; human review pending
+        observed = self._profile()
+        self.assertEqual(observed, self._direct('profile'))
+        df = pd.read_csv(io.StringIO(observed), sep='\t')
+        self.assertEqual(list(zip(df['Sample_file'], df['Genome_file'])), [
+            ('1135D', 'genomes/GCF_040096305.1_genomic.fna.gz'),
+            ('DB47D', 'genomes/GCF_000023865.1_genomic.fna.gz'),
+            ('DB47D', 'genomes/GCF_001592045.1_genomic.fna.gz')])
+        self.assertIn('Eff_cov', df.columns)
+
+    def test_estimate_unknown(self):
+        # TODO: this is AI-generated code; human review pending
+        observed = self._profile(estimate_unknown=True)
+        self.assertEqual(observed, self._direct('profile', '-u'))
+        df = pd.read_csv(io.StringIO(observed), sep='\t')
+        self.assertIn('True_cov', df.columns)
+        # about half of each sample's reads come from genomes not in the
+        # database, so the detected genomes' sequence abundance is far below
+        # 100% once the unknown share is estimated
+        self.assertLess(df.groupby('Sample_file')['Sequence_abundance'].sum().max(),
+                        75)
+
+    def test_options_reach_sylph(self):
+        # TODO: this is AI-generated code; human review pending
+        observed = self._profile(minimum_ani=99.5, min_number_kmers=20,
+                                 estimate_unknown=True, read_seq_id=99.0)
+        self.assertEqual(observed, self._direct(
+            'profile', '--minimum-ani', '99.5', '--min-number-kmers', '20',
+            '-u', '--read-seq-id', '99.0'))
+        # T. fusca in DB47D sits at an adjusted ANI of about 99.4
+        self.assertNotIn('GCF_001592045.1', observed)
+
+    def test_nothing_detected_is_a_header(self):
+        # TODO: this is AI-generated code; human review pending
+        soil = [p for p in self.sketch_paths if '73F84' in p]
+        observed = self._direct('profile', sketch_paths=soil)
+        self.assertEqual(observed.count('\n'), 1)
+        with tempfile.NamedTemporaryFile('w', suffix='.tsv') as fh:
+            fh.write(observed)
+            fh.flush()
+            SylphProfileFormat(fh.name, mode='r').validate()
+
+    def test_format_rejects_query_output(self):
+        # TODO: this is AI-generated code; human review pending
+        with tempfile.NamedTemporaryFile('w', suffix='.tsv') as fh:
+            fh.write(self._direct('query'))
+            fh.flush()
+            with self.assertRaisesRegex(ValidationError, 'header'):
+                SylphProfileFormat(fh.name, mode='r').validate()

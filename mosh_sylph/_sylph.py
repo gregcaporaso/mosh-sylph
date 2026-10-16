@@ -14,7 +14,8 @@ import tempfile
 import pandas as pd
 from q2_types.per_sample_sequences import SingleLanePerSamplePairedEndFastqDirFmt
 
-from mosh_sylph._formats import SylphDatabaseDirFmt, SylphSketchesDirFmt
+from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphProfileDirFmt,
+                                 SylphSketchesDirFmt)
 from mosh_sylph._util import _download, _run
 
 DEFAULT_BASE_URL = 'http://faust.compbio.cs.cmu.edu/sylph-stuff'
@@ -56,3 +57,35 @@ def sketch(reads: SingleLanePerSamplePairedEndFastqDirFmt, threads: int = 3,
               '--fpr', str(fpr), '--l1', lists['l1'], '--l2', lists['l2'],
               '--lS', lists['names'], '-d', str(sketches)])
     return sketches
+
+
+def _search_options(threads, minimum_ani, min_number_kmers, min_contain,
+                    min_count_correct, screen_ani):
+    # TODO: this is AI-generated code; human review pending
+    """The options sylph profile and sylph query share."""
+    return ['-t', str(threads), '--minimum-ani', str(minimum_ani),
+            '--min-number-kmers', str(min_number_kmers),
+            '--min-contain', str(min_contain),
+            '--min-count-correct', str(min_count_correct),
+            '--screen-ani', str(screen_ani)]
+
+
+def profile(sketches: SylphSketchesDirFmt, database: SylphDatabaseDirFmt,
+            threads: int = 3, minimum_ani: float = 95.0,
+            min_number_kmers: int = 10, min_contain: int = 7,
+            min_count_correct: float = 3.0, estimate_unknown: bool = False,
+            read_seq_id: float = None, screen_ani: float = 85.0
+            ) -> SylphProfileDirFmt:
+    # TODO: this is AI-generated code; human review pending
+    """sylph profile of every sketch against the database."""
+    result = SylphProfileDirFmt()
+    _run(['sylph', 'profile']
+         + _search_options(threads, minimum_ani, min_number_kmers, min_contain,
+                           min_count_correct, screen_ani)
+         + (['--estimate-unknown'] if estimate_unknown else [])
+         + (['--read-seq-id', str(read_seq_id)] if read_seq_id is not None
+            else [])
+         + ['-d', os.path.join(str(database), 'database.syl2db'),
+            '-o', os.path.join(str(result), 'profile.tsv')]
+         + list(sketches.sample_paths().values()))
+    return result

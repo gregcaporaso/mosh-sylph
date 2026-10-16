@@ -81,3 +81,27 @@ class SylphSketchesDirFmt(model.DirectoryFormat):
         suffix = '.paired.sylsp'
         return {f[:-len(suffix)]: os.path.join(str(self), f)
                 for f in sorted(os.listdir(str(self))) if f.endswith(suffix)}
+
+
+class _SylphTSVFormat(model.TextFileFormat):
+    """A sylph TSV: its header starts with HEADER."""
+    HEADER = ()
+
+    def _validate_(self, level):
+        # TODO: this is AI-generated code; human review pending
+        with open(str(self)) as fh:
+            columns = fh.readline().rstrip('\n').split('\t')
+        if tuple(columns[:len(self.HEADER)]) != self.HEADER:
+            raise model.ValidationError(
+                f'expected a header starting with {self.HEADER}, found '
+                f'{tuple(columns)}')
+
+
+class SylphProfileFormat(_SylphTSVFormat):
+    """sylph profile output: one row per sample and detected genome."""
+    HEADER = ('Sample_file', 'Genome_file', 'Taxonomic_abundance',
+              'Sequence_abundance', 'Adjusted_ANI')
+
+
+SylphProfileDirFmt = model.SingleFileDirectoryFormat(
+    'SylphProfileDirFmt', 'profile.tsv', SylphProfileFormat)
