@@ -61,7 +61,9 @@ def _read_sylphmpa(path):
             raise ValueError(f'{path}: genome {strain[3:]} has no entry in the '
                              'sylph-tax taxonomy (database and taxonomy differ)')
         if len(ranks) != 7 or any(not r.startswith(p) for r, p in zip(ranks, RANKS)):
-            raise ValueError(f'{path}: unexpected clade string {clade!r}')
+            raise ValueError(f'{path}: expected the seven GTDB ranks d__ to s__ '
+                             f'above the genome, found {clade!r}; '
+                             'taxprof-to-tables handles GTDB taxonomies only')
         acc = _accession(strain[3:])
         if acc in rows:
             raise ValueError(f'{path}: accession {acc} appears twice')

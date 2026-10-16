@@ -140,6 +140,15 @@ class SylphmpaParserTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'no entry in the sylph-tax'):
             _read_sylphmpa(p)
 
+    def test_non_gtdb_ranks(self):
+        # TODO: this is AI-generated code; human review pending
+        p = self._write('s5.sylphmpa', (
+            '#SampleID\ts5\tTaxonomies_used:[\'UHGV_default\']\n' + HEADER
+            + 'd__Viruses|f__Fam|s__Sp\t100.0\t50.0\tNA\tNA\n'
+            'd__Viruses|f__Fam|s__Sp|t__UHGV-1\t100.0\t50.0\t99.0\t1.0\n'))
+        with self.assertRaisesRegex(ValueError, 'GTDB taxonomies only'):
+            _read_sylphmpa(p)
+
     def test_not_sylphmpa(self):
         # TODO: this is AI-generated code; human review pending
         p = self._write('x.tsv', 'a\tb\n')
