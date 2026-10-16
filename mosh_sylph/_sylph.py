@@ -15,7 +15,7 @@ import pandas as pd
 from q2_types.per_sample_sequences import SingleLanePerSamplePairedEndFastqDirFmt
 
 from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphProfileDirFmt,
-                                 SylphSketchesDirFmt)
+                                 SylphQueryDirFmt, SylphSketchesDirFmt)
 from mosh_sylph._util import _download, _run
 
 DEFAULT_BASE_URL = 'http://faust.compbio.cs.cmu.edu/sylph-stuff'
@@ -87,5 +87,22 @@ def profile(sketches: SylphSketchesDirFmt, database: SylphDatabaseDirFmt,
             else [])
          + ['-d', os.path.join(str(database), 'database.syl2db'),
             '-o', os.path.join(str(result), 'profile.tsv')]
+         + list(sketches.sample_paths().values()))
+    return result
+
+
+def query(sketches: SylphSketchesDirFmt, database: SylphDatabaseDirFmt,
+          threads: int = 3, minimum_ani: float = 90.0,
+          min_number_kmers: int = 10, min_contain: int = 7,
+          min_count_correct: float = 3.0, screen_ani: float = 85.0
+          ) -> SylphQueryDirFmt:
+    # TODO: this is AI-generated code; human review pending
+    """sylph query of every sketch against the database."""
+    result = SylphQueryDirFmt()
+    _run(['sylph', 'query']
+         + _search_options(threads, minimum_ani, min_number_kmers, min_contain,
+                           min_count_correct, screen_ani)
+         + ['-d', os.path.join(str(database), 'database.syl2db'),
+            '-o', os.path.join(str(result), 'query.tsv')]
          + list(sketches.sample_paths().values()))
     return result

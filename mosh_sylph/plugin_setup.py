@@ -13,15 +13,17 @@ from q2_types.sample_data import SampleData
 
 from mosh_sylph import __version__
 from mosh_sylph._examples import (_fetch_database_example, _profile_example,
-                                  _sketch_example, _tax_download_example)
+                                  _query_example, _sketch_example,
+                                  _tax_download_example)
 from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphDatabaseFormat,
                                  SylphProfileDirFmt, SylphProfileFormat,
+                                 SylphQueryDirFmt, SylphQueryFormat,
                                  SylphSketchesDirFmt, SylphSketchFormat,
                                  SylphTaxonomyDirFmt, SylphTaxonomyFormat)
-from mosh_sylph._sylph import fetch_database, profile, sketch
+from mosh_sylph._sylph import fetch_database, profile, query, sketch
 from mosh_sylph._sylph_tax import TAXONOMIES, tax_download
-from mosh_sylph._types import (SylphDatabase, SylphProfile, SylphSketches,
-                               SylphTaxonomy)
+from mosh_sylph._types import (SylphDatabase, SylphProfile, SylphQuery,
+                               SylphSketches, SylphTaxonomy)
 
 citations = Citations.load("citations.bib", package="mosh_sylph")
 
@@ -68,9 +70,10 @@ _SEARCH_PARAMETER_DESCRIPTIONS = {
 plugin.register_formats(SylphDatabaseFormat, SylphDatabaseDirFmt,
                         SylphTaxonomyFormat, SylphTaxonomyDirFmt,
                         SylphSketchFormat, SylphSketchesDirFmt,
-                        SylphProfileFormat, SylphProfileDirFmt)
+                        SylphProfileFormat, SylphProfileDirFmt,
+                        SylphQueryFormat, SylphQueryDirFmt)
 plugin.register_semantic_types(SylphDatabase, SylphTaxonomy, SylphSketches,
-                               SylphProfile)
+                               SylphProfile, SylphQuery)
 plugin.register_artifact_class(
     SylphDatabase, SylphDatabaseDirFmt,
     description='A two-stage sylph genome database (.syl2db, sylph >= 1.0.0), '
@@ -88,6 +91,11 @@ plugin.register_artifact_class(
     SylphProfile, SylphProfileDirFmt,
     description='sylph profile output: a TSV with one row per sample and '
                 'detected genome (taxonomic and sequence abundance, ANI, '
+                'coverage), as sylph writes it.')
+plugin.register_artifact_class(
+    SylphQuery, SylphQueryDirFmt,
+    description='sylph query output: a TSV with one row per sample and '
+                'database genome with enough sampled k-mers (containment ANI, '
                 'coverage), as sylph writes it.')
 
 plugin.methods.register_function(
@@ -200,4 +208,34 @@ plugin.methods.register_function(
                  'the taxonomy.' + _EXPERIMENTAL),
     citations=[citations['Shaw-Yu-2025']],
     examples={'profile_with_unknown_share': _profile_example},
+)
+
+plugin.methods.register_function(
+    function=query,
+    inputs=_SEARCH_INPUTS,
+    parameters=_SEARCH_PARAMETERS,
+    outputs=[('query', SylphQuery)],
+    input_descriptions=_SEARCH_INPUT_DESCRIPTIONS,
+    parameter_descriptions={
+        **_SEARCH_PARAMETER_DESCRIPTIONS,
+        'minimum_ani': 'Minimum adjusted ANI, 0-100, for a genome to be '
+                       'reported (--minimum-ani; sylph\'s default for query is '
+                       '90, lower than profile\'s 95).'},
+    output_descriptions={
+        'query': 'sylph query\'s TSV: per sample and genome, '
+                 'Adjusted_ANI, Eff_cov, ANI_5-95_percentile, '
+                 'Containment_ind, Naive_ANI and the other statistics sylph '
+                 'reports. A sample with no genome above the thresholds has '
+                 'no rows.'},
+    name='Query sketches against a database',
+    description=(
+        'sylph query: the coverage-adjusted containment ANI of every database '
+        'genome in every sample, without abundances and without profile\'s '
+        'reassignment of shared k-mers, so closely related genomes are all '
+        'reported. At effective coverage below about 0.1x the adjusted ANI and '
+        'its 5-95 percentile interval overshoot (the interval can exceed 100), '
+        'so read low-coverage rows with the containment index and naive ANI.'
+        + _EXPERIMENTAL),
+    citations=[citations['Shaw-Yu-2025']],
+    examples={'query_sketches': _query_example},
 )

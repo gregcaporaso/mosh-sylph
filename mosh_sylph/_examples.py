@@ -92,3 +92,19 @@ def _profile_example(use):
                         estimate_unknown=True),
         use.UsageOutputNames(profile='sylph-profile'),
     )
+
+
+def _query_example(use):
+    # TODO: this is AI-generated code; human review pending
+    reads = use.init_artifact('reads', _reads_factory)
+    database = use.init_artifact('sylph-database', _database_factory)
+    sketches, = use.action(
+        use.UsageAction('sylph', 'sketch'),
+        use.UsageInputs(reads=reads, threads=1),
+        use.UsageOutputNames(sketches='sketches'),
+    )
+    use.action(
+        use.UsageAction('sylph', 'query'),
+        use.UsageInputs(sketches=sketches, database=database, threads=1),
+        use.UsageOutputNames(query='sylph-query'),
+    )

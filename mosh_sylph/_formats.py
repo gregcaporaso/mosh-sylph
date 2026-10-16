@@ -105,3 +105,12 @@ class SylphProfileFormat(_SylphTSVFormat):
 
 SylphProfileDirFmt = model.SingleFileDirectoryFormat(
     'SylphProfileDirFmt', 'profile.tsv', SylphProfileFormat)
+
+
+class SylphQueryFormat(_SylphTSVFormat):
+    """sylph query output: one row per sample and genome with enough k-mers."""
+    HEADER = ('Sample_file', 'Genome_file', 'Adjusted_ANI', 'Eff_cov')
+
+
+SylphQueryDirFmt = model.SingleFileDirectoryFormat(
+    'SylphQueryDirFmt', 'query.tsv', SylphQueryFormat)

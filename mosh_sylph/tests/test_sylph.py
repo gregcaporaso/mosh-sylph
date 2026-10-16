@@ -22,6 +22,7 @@ from q2_types.per_sample_sequences import SingleLanePerSamplePairedEndFastqDirFm
 from mosh_sylph import _examples as ex
 from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphDatabaseFormat,
                                  SylphProfileDirFmt, SylphProfileFormat,
+                                 SylphQueryDirFmt, SylphQueryFormat,
                                  SylphSketchesDirFmt, SylphSketchFormat)
 from mosh_sylph._sylph import _database_url
 
@@ -224,3 +225,42 @@ class ProfileTests(_SearchTestBase):
             fh.flush()
             with self.assertRaisesRegex(ValidationError, 'header'):
                 SylphProfileFormat(fh.name, mode='r').validate()
+
+
+class QueryTests(_SearchTestBase):
+
+    def _query(self, **kwargs):
+        # TODO: this is AI-generated code; human review pending
+        result, = self.plugin.methods['query'](
+            self.sketches, self.database, threads=1, **kwargs)
+        self.assertEqual(str(result.type), 'SylphQuery')
+        with open(os.path.join(str(result.view(SylphQueryDirFmt)),
+                               'query.tsv')) as fh:
+            return fh.read()
+
+    def test_same_as_sylph_query(self):
+        # TODO: this is AI-generated code; human review pending
+        observed = self._query()
+        self.assertEqual(observed, self._direct('query'))
+        df = pd.read_csv(io.StringIO(observed), sep='\t')
+        self.assertEqual(sorted(zip(df['Sample_file'], df['Genome_file'])), [
+            ('1135D', 'genomes/GCF_040096305.1_genomic.fna.gz'),
+            ('DB47D', 'genomes/GCF_000023865.1_genomic.fna.gz'),
+            ('DB47D', 'genomes/GCF_001592045.1_genomic.fna.gz')])
+
+    def test_options_reach_sylph(self):
+        # TODO: this is AI-generated code; human review pending
+        observed = self._query(min_number_kmers=12000, screen_ani=80.0)
+        self.assertEqual(observed, self._direct(
+            'query', '--min-number-kmers', '12000', '--screen-ani', '80.0'))
+        # R. intestinale, the genome detected in 1135D, has 9,886 sampled
+        # k-mers, under the floor
+        self.assertNotIn('1135D', observed)
+
+    def test_format_rejects_profile_output(self):
+        # TODO: this is AI-generated code; human review pending
+        with tempfile.NamedTemporaryFile('w', suffix='.tsv') as fh:
+            fh.write(self._direct('profile'))
+            fh.flush()
+            with self.assertRaisesRegex(ValidationError, 'header'):
+                SylphQueryFormat(fh.name, mode='r').validate()
