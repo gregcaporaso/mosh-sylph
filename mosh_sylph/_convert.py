@@ -92,7 +92,10 @@ def _tables(paths, samples):
         stats.append({'sample-id': sample, 'genomes': len(df),
                       'genera': df['Taxon'].str.split(';').str[5].nunique(),
                       'median-ani': df['ani'].median() if len(df) else np.nan,
-                      'unknown-share': round(1 - df['seq'].sum() / 100, 6)})
+                      # sylph's four-decimal percentages can sum to 100.0001
+                      # without -u: no negative share
+                      'unknown-share': min(1.0, max(
+                          0.0, round(1 - df['seq'].sum() / 100, 6)))})
     for sample in samples:
         if sample not in per_sample:
             per_sample[sample] = pd.DataFrame(

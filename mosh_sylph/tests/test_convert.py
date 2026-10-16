@@ -110,6 +110,14 @@ class SylphmpaParserTests(unittest.TestCase):
         self.assertEqual(stats.loc['s3', 'genomes'], 0)
         self.assertEqual(stats.loc['s3', 'unknown-share'], 1.0)
 
+    def test_unknown_share_not_negative(self):
+        # TODO: this is AI-generated code; human review pending
+        p = self._write('s4.sylphmpa', _sylphmpa('s4', [
+            ('GCF_1.1', 'Blautia wexlerae', 60.0, 60.0001, 99.0),
+            ('GCF_2.1', 'Blautia_A obeum', 40.0, 40.0001, 98.0)]))
+        _, _, _, stats = _tables([p], ['s4'])
+        self.assertEqual(stats.loc['s4', 'unknown-share'], 0.0)
+
     def test_profile_without_sketch(self):
         # TODO: this is AI-generated code; human review pending
         with self.assertRaisesRegex(ValueError, 's2 has a profile but no sketch'):
