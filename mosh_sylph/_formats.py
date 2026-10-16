@@ -9,6 +9,8 @@
 """File formats: each holds a sylph or sylph-tax file exactly as the tool
 reads or writes it."""
 
+import gzip
+
 from qiime2.plugin import model
 
 
@@ -25,3 +27,28 @@ class SylphDatabaseFormat(model.BinaryFileFormat):
 
 SylphDatabaseDirFmt = model.SingleFileDirectoryFormat(
     'SylphDatabaseDirFmt', 'database.syl2db', SylphDatabaseFormat)
+
+
+class SylphTaxonomyFormat(model.BinaryFileFormat):
+    """sylph-tax taxonomy metadata: gzipped, tab-separated, one genome per
+    line (accession or genome file name, ;-separated taxonomy string, and an
+    optional third column such as a virus host)."""
+
+    def _validate_(self, level):
+        # TODO: this is AI-generated code; human review pending
+        lines = {'min': 10, 'max': None}[level]
+        try:
+            with gzip.open(str(self), 'rt') as fh:
+                for i, line in enumerate(fh):
+                    if lines is not None and i >= lines:
+                        break
+                    if len(line.rstrip('\n').split('\t')) < 2:
+                        raise model.ValidationError(
+                            f'line {i + 1}: expected an accession and a '
+                            'taxonomy string separated by a tab')
+        except (OSError, EOFError) as e:
+            raise model.ValidationError(f'not gzipped: {e}')
+
+
+SylphTaxonomyDirFmt = model.SingleFileDirectoryFormat(
+    'SylphTaxonomyDirFmt', 'taxonomy.tsv.gz', SylphTaxonomyFormat)

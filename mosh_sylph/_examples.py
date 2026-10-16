@@ -31,3 +31,12 @@ def _fetch_database_example(use):
         use.UsageInputs(release='232'),
         use.UsageOutputNames(database='sylph-gtdb-r232'),
     )
+
+
+def _tax_download_example(use):
+    # TODO: this is AI-generated code; human review pending
+    use.action(
+        use.UsageAction('sylph', 'tax_download'),
+        use.UsageInputs(taxonomy='GTDB_r232'),
+        use.UsageOutputNames(sylph_taxonomy='sylph-taxonomy-gtdb-r232'),
+    )

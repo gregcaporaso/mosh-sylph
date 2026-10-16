@@ -21,3 +21,7 @@ done
 sylph sketch -t 3 -g genomes/*.fna.gz -o fixture            # c=200, k=31: the authors' settings
 sylph convert-db-two-screen -t 3 -o fixture fixture.syldb
 ```
+
+## `taxonomy.tsv.gz`
+
+Five rows of sylph-tax's GTDB r232 taxonomy metadata in its format (accession, tab, taxonomy string): the three database genomes and two others, taken from the r232 `.sylphmpa` profiles of the tutorial samples (the thermo-hec project's `bacon/wgs-nohost-f10/sylph/`).

@@ -19,6 +19,9 @@ class ExamplesTests(TestPluginBase):
     def test_examples(self):
         # TODO: this is AI-generated code; human review pending
         database = 'file://' + self.get_data_path('fixture.syl2db')
+        taxonomy = 'file://' + self.get_data_path('taxonomy.tsv.gz')
         with mock.patch('mosh_sylph._sylph._database_url',
-                        return_value=database):
+                        return_value=database), \
+                mock.patch('mosh_sylph._sylph_tax._taxonomy_url',
+                           return_value=taxonomy):
             self.execute_examples()

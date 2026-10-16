@@ -9,10 +9,13 @@
 from qiime2.plugin import Choices, Citations, Plugin, Str
 
 from mosh_sylph import __version__
-from mosh_sylph._examples import _fetch_database_example
-from mosh_sylph._formats import SylphDatabaseDirFmt, SylphDatabaseFormat
+from mosh_sylph._examples import (_fetch_database_example,
+                                  _tax_download_example)
+from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphDatabaseFormat,
+                                 SylphTaxonomyDirFmt, SylphTaxonomyFormat)
 from mosh_sylph._sylph import fetch_database
-from mosh_sylph._types import SylphDatabase
+from mosh_sylph._sylph_tax import TAXONOMIES, tax_download
+from mosh_sylph._types import SylphDatabase, SylphTaxonomy
 
 citations = Citations.load("citations.bib", package="mosh_sylph")
 
@@ -31,12 +34,18 @@ plugin = Plugin(
 
 _EXPERIMENTAL = ' EXPERIMENTAL: this is AI-generated code; human review pending.'
 
-plugin.register_formats(SylphDatabaseFormat, SylphDatabaseDirFmt)
-plugin.register_semantic_types(SylphDatabase)
+plugin.register_formats(SylphDatabaseFormat, SylphDatabaseDirFmt,
+                        SylphTaxonomyFormat, SylphTaxonomyDirFmt)
+plugin.register_semantic_types(SylphDatabase, SylphTaxonomy)
 plugin.register_artifact_class(
     SylphDatabase, SylphDatabaseDirFmt,
     description='A two-stage sylph genome database (.syl2db, sylph >= 1.0.0), '
                 'which sylph profile and sylph query search.')
+plugin.register_artifact_class(
+    SylphTaxonomy, SylphTaxonomyDirFmt,
+    description='sylph-tax taxonomy metadata: a gzipped two-column table of '
+                'genome accession and taxonomy string, which sylph-tax taxprof '
+                'joins to sylph profiles.')
 
 plugin.methods.register_function(
     function=fetch_database,
@@ -62,4 +71,25 @@ plugin.methods.register_function(
         + _EXPERIMENTAL),
     citations=[citations['Shaw-Yu-2025']],
     examples={'fetch_database_r232': _fetch_database_example},
+)
+
+plugin.methods.register_function(
+    function=tax_download,
+    inputs={},
+    parameters={'taxonomy': Str % Choices(TAXONOMIES)},
+    outputs=[('sylph_taxonomy', SylphTaxonomy)],
+    parameter_descriptions={
+        'taxonomy': 'sylph-tax\'s identifier of the taxonomy; GTDB_r226 and '
+                    'GTDB_r232 match the databases fetch-database downloads.'},
+    output_descriptions={
+        'sylph_taxonomy': 'The taxonomy metadata file, as sylph-tax download '
+                          'stores it.'},
+    name='Download sylph-tax taxonomy metadata',
+    description=(
+        'Downloads the taxonomy metadata file that sylph-tax download fetches '
+        'for one taxonomy identifier, from the URL sylph-tax lists for it '
+        '(sylph-tax download itself fetches every taxonomy at once).'
+        + _EXPERIMENTAL),
+    citations=[citations['Shaw-Yu-2025']],
+    examples={'tax_download_gtdb_r232': _tax_download_example},
 )
