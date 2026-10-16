@@ -135,3 +135,22 @@ def _taxprof_example(use):
         use.UsageInputs(profile=profile, sylph_taxonomy=taxonomy),
         use.UsageOutputNames(taxonomic_profiles='sylph-taxprof'),
     )
+
+
+def _taxprof_factory():
+    # TODO: this is AI-generated code; human review pending
+    from mosh_sylph.plugin_setup import plugin
+    profiles, = plugin.methods['taxprof'](_profile_factory(),
+                                          _taxonomy_factory())
+    return profiles
+
+
+def _tax_merge_example(use):
+    # TODO: this is AI-generated code; human review pending
+    profiles = use.init_artifact('sylph-taxprof', _taxprof_factory)
+    use.action(
+        use.UsageAction('sylph', 'tax_merge'),
+        use.UsageInputs(taxonomic_profiles=profiles,
+                        column='relative_abundance'),
+        use.UsageOutputNames(merged_profile='sylph-merged-relative-abundance'),
+    )

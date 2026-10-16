@@ -138,3 +138,12 @@ class SylphTaxProfilesDirFmt(model.DirectoryFormat):
     def _profile_path(self, sample_id):
         # TODO: this is AI-generated code; human review pending
         return f'{sample_id}.sylphmpa'
+
+
+class SylphMergedProfileFormat(_SylphTSVFormat):
+    """sylph-tax merge output: clades by samples for one column."""
+    HEADER = ('clade_name',)
+
+
+SylphMergedProfileDirFmt = model.SingleFileDirectoryFormat(
+    'SylphMergedProfileDirFmt', 'merged.tsv', SylphMergedProfileFormat)

@@ -13,11 +13,12 @@ import os
 from sylph_tax.metadata_files import (__metadata_file_urls__,
                                       __name_to_metadata_file__)
 
-from mosh_sylph._formats import (SylphProfileDirFmt, SylphTaxonomyDirFmt,
-                                 SylphTaxProfilesDirFmt)
+from mosh_sylph._formats import (SylphMergedProfileDirFmt, SylphProfileDirFmt,
+                                 SylphTaxonomyDirFmt, SylphTaxProfilesDirFmt)
 from mosh_sylph._util import _download, _run
 
 TAXONOMIES = list(__name_to_metadata_file__)
+MERGE_COLUMNS = ['relative_abundance', 'sequence_abundance', 'ANI', 'Coverage']
 
 
 def _taxonomy_url(taxonomy):
@@ -49,4 +50,17 @@ def taxprof(profile: SylphProfileDirFmt, sylph_taxonomy: SylphTaxonomyDirFmt
     _run(['sylph-tax', '--no-config', 'taxprof', path,
           '-t', os.path.join(str(sylph_taxonomy), 'taxonomy.tsv.gz'),
           '-o', str(result) + os.sep])
+    return result
+
+
+def tax_merge(taxonomic_profiles: SylphTaxProfilesDirFmt,
+              column: str = 'relative_abundance') -> SylphMergedProfileDirFmt:
+    # TODO: this is AI-generated code; human review pending
+    """sylph-tax merge of the per-sample profiles for one column."""
+    paths = sorted(os.path.join(str(taxonomic_profiles), f)
+                   for f in os.listdir(str(taxonomic_profiles))
+                   if f.endswith('.sylphmpa'))
+    result = SylphMergedProfileDirFmt()
+    _run(['sylph-tax', '--no-config', 'merge', *paths, '--column', column,
+          '-o', os.path.join(str(result), 'merged.tsv')])
     return result

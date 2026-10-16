@@ -14,16 +14,21 @@ from q2_types.sample_data import SampleData
 from mosh_sylph import __version__
 from mosh_sylph._examples import (_fetch_database_example, _profile_example,
                                   _query_example, _sketch_example,
-                                  _tax_download_example, _taxprof_example)
+                                  _tax_download_example, _tax_merge_example,
+                                  _taxprof_example)
 from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphDatabaseFormat,
+                                 SylphMergedProfileDirFmt,
+                                 SylphMergedProfileFormat,
                                  SylphProfileDirFmt, SylphProfileFormat,
                                  SylphQueryDirFmt, SylphQueryFormat,
                                  SylphSketchesDirFmt, SylphSketchFormat,
                                  SylphMpaFormat, SylphTaxonomyDirFmt,
                                  SylphTaxonomyFormat, SylphTaxProfilesDirFmt)
 from mosh_sylph._sylph import fetch_database, profile, query, sketch
-from mosh_sylph._sylph_tax import TAXONOMIES, tax_download, taxprof
-from mosh_sylph._types import (SylphDatabase, SylphProfile, SylphQuery,
+from mosh_sylph._sylph_tax import (MERGE_COLUMNS, TAXONOMIES, tax_download,
+                                   tax_merge, taxprof)
+from mosh_sylph._types import (SylphDatabase, SylphMergedProfile, SylphProfile,
+                               SylphQuery,
                                SylphSketches, SylphTaxonomy, SylphTaxProfiles)
 
 citations = Citations.load("citations.bib", package="mosh_sylph")
@@ -73,9 +78,11 @@ plugin.register_formats(SylphDatabaseFormat, SylphDatabaseDirFmt,
                         SylphSketchFormat, SylphSketchesDirFmt,
                         SylphProfileFormat, SylphProfileDirFmt,
                         SylphQueryFormat, SylphQueryDirFmt,
-                        SylphMpaFormat, SylphTaxProfilesDirFmt)
+                        SylphMpaFormat, SylphTaxProfilesDirFmt,
+                        SylphMergedProfileFormat, SylphMergedProfileDirFmt)
 plugin.register_semantic_types(SylphDatabase, SylphTaxonomy, SylphSketches,
-                               SylphProfile, SylphQuery, SylphTaxProfiles)
+                               SylphProfile, SylphQuery, SylphTaxProfiles,
+                               SylphMergedProfile)
 plugin.register_artifact_class(
     SylphDatabase, SylphDatabaseDirFmt,
     description='A two-stage sylph genome database (.syl2db, sylph >= 1.0.0), '
@@ -104,6 +111,11 @@ plugin.register_artifact_class(
     description='sylph-tax taxprof output: one .sylphmpa taxonomic profile '
                 'per sample in which sylph detected a genome, as sylph-tax '
                 'writes them.')
+plugin.register_artifact_class(
+    SylphMergedProfile, SylphMergedProfileDirFmt,
+    description='sylph-tax merge output: a TSV of one profile column (for '
+                'example relative_abundance) with a row per clade at every '
+                'rank and a column per sample, as sylph-tax writes it.')
 
 plugin.methods.register_function(
     function=fetch_database,
@@ -268,4 +280,25 @@ plugin.methods.register_function(
         'reported under NO_TAXONOMY.' + _EXPERIMENTAL),
     citations=[citations['Shaw-Yu-2025']],
     examples={'taxprof_gtdb': _taxprof_example},
+)
+
+plugin.methods.register_function(
+    function=tax_merge,
+    inputs={'taxonomic_profiles': SylphTaxProfiles},
+    parameters={'column': Str % Choices(MERGE_COLUMNS)},
+    outputs=[('merged_profile', SylphMergedProfile)],
+    input_descriptions={'taxonomic_profiles': 'sylph-tax taxprof profiles.'},
+    parameter_descriptions={
+        'column': 'The profile column to merge (sylph-tax merge --column): '
+                  'relative_abundance (taxonomic abundance), '
+                  'sequence_abundance, ANI or Coverage (genome rows only).'},
+    output_descriptions={
+        'merged_profile': 'One row per clade (every rank, | separated) and one '
+                          'column per sample; clades absent from a sample are '
+                          '0.'},
+    name='Merge sylph-tax profiles into one table',
+    description=('sylph-tax merge: one column of every sample\'s profile side '
+                 'by side.' + _EXPERIMENTAL),
+    citations=[citations['Shaw-Yu-2025']],
+    examples={'tax_merge_relative_abundance': _tax_merge_example},
 )

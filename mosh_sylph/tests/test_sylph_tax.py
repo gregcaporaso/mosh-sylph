@@ -18,10 +18,11 @@ from qiime2.plugin import ValidationError
 from qiime2.plugin.testing import TestPluginBase
 
 from mosh_sylph import _examples as ex
-from mosh_sylph._formats import (SylphMpaFormat, SylphProfileDirFmt,
+from mosh_sylph._formats import (SylphMergedProfileDirFmt, SylphMpaFormat,
+                                 SylphProfileDirFmt,
                                  SylphTaxonomyDirFmt, SylphTaxonomyFormat,
                                  SylphTaxProfilesDirFmt)
-from mosh_sylph._sylph_tax import TAXONOMIES, _taxonomy_url
+from mosh_sylph._sylph_tax import MERGE_COLUMNS, TAXONOMIES, _taxonomy_url
 
 
 class TaxDownloadTests(TestPluginBase):
@@ -129,6 +130,37 @@ class TaxprofTests(TestPluginBase):
             profile = Artifact.import_data('SylphProfile', d)
         with self.assertRaisesRegex(ValueError, 'detected no genome'):
             self.plugin.methods['taxprof'](profile, self.taxonomy)
+
+
+class TaxMergeTests(TestPluginBase):
+    package = 'mosh_sylph.tests'
+
+    @classmethod
+    def setUpClass(cls):
+        # TODO: this is AI-generated code; human review pending
+        super().setUpClass()
+        cls.profiles = ex._taxprof_factory()
+        directory = str(cls.profiles.view(SylphTaxProfilesDirFmt))
+        cls.paths = [os.path.join(directory, f)
+                     for f in sorted(os.listdir(directory))]
+
+    def test_same_as_sylph_tax_merge(self):
+        # TODO: this is AI-generated code; human review pending
+        for column in MERGE_COLUMNS:
+            with self.subTest(column=column):
+                merged, = self.plugin.methods['tax_merge'](
+                    self.profiles, column=column)
+                self.assertEqual(str(merged.type), 'SylphMergedProfile')
+                path = os.path.join(str(merged.view(SylphMergedProfileDirFmt)),
+                                    'merged.tsv')
+                with tempfile.TemporaryDirectory() as d:
+                    out = os.path.join(d, 'merged.tsv')
+                    _sylph_tax('merge', *self.paths, '--column', column,
+                               '-o', out)
+                    self.assertTrue(filecmp.cmp(path, out, shallow=False))
+                with open(path) as fh:
+                    self.assertEqual(fh.readline().rstrip('\n').split('\t'),
+                                     ['clade_name', '1135D', 'DB47D'])
 
 
 class SylphMpaFormatTests(TestPluginBase):
