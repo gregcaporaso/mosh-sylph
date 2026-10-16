@@ -17,6 +17,7 @@ query-to-metadata turns sylph query output into one metadata row per sample
 and genome with the taxonomy joined.
 """
 
+import csv
 import os
 import re
 
@@ -47,7 +48,8 @@ def _read_sylphmpa(path):
     if not header.startswith('#SampleID'):
         raise ValueError(f'{path}: not a .sylphmpa file')
     sample = header.split('\t')[1].strip()
-    df = pd.read_csv(path, sep='\t', comment='#', header=0)
+    df = pd.read_csv(path, sep='\t', comment='#', header=0,
+                     quoting=csv.QUOTE_NONE)
     df.columns = [c.split(' ')[0] for c in df.columns]   # 'ANI (if ...)' -> 'ANI'
     rows = {}
     for clade, rel, seq, ani in zip(df['clade_name'], df['relative_abundance'],
@@ -132,7 +134,8 @@ def _read_taxonomy(sylph_taxonomy):
     # TODO: this is AI-generated code; human review pending
     """{accession: taxonomy string} from sylph-tax taxonomy metadata."""
     path = os.path.join(str(sylph_taxonomy), 'taxonomy.tsv.gz')
-    df = pd.read_csv(path, sep='\t', header=None, usecols=[0, 1], dtype=str)
+    df = pd.read_csv(path, sep='\t', header=None, usecols=[0, 1], dtype=str,
+                     quoting=csv.QUOTE_NONE)
     return df.set_index(0)[1].to_dict()
 
 
@@ -142,11 +145,13 @@ def _query_to_metadata(path, taxonomy, targets=None):
     '<sample>-<accession>' (sample-id is reserved for the ID header), the
     taxonomy joined by accession, and the 5-95 percentile interval split into
     two numeric columns (NA -> missing). `targets`: keep only rows whose
-    taxonomy or accession contains one."""
-    try:
-        df = pd.read_csv(path, sep='\t', dtype=str)
-    except pd.errors.EmptyDataError:
-        df = pd.DataFrame()
+    taxonomy or accession contains one. Read as sylph-tax reads sylph output:
+    no quoting, and only the header's columns, because a tab inside a genome's
+    first contig name adds fields to its Contig_name rows."""
+    with open(path) as fh:
+        columns = fh.readline().rstrip('\n').split('\t')
+    df = pd.read_csv(path, sep='\t', dtype=str, quoting=csv.QUOTE_NONE,
+                     usecols=range(len(columns)))
     if df.empty:
         raise ValueError('sylph query reported no genome with enough sampled '
                          'k-mers in any sample')

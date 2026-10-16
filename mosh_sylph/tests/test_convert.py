@@ -207,6 +207,10 @@ class QueryParserTests(unittest.TestCase):
             fh.write('s1\t/db/GCF_000001.1_genomic.fna.gz\t100.00\t15.000\t'
                      'NA-NA\tHIGH\tNA-NA\t15\t15.485\t270/270\t100.00\t'
                      'GCF_000001.1\n')
+            # a tab and a quote inside the contig name, as sylph passes them on
+            fh.write('s1\t/db/GCF_000003.1_genomic.fna.gz\t99.00\t0.500\t'
+                     '98.0-99.9\t0.5\t0.4-0.6\t1\t1.200\t90/300\t96.00\t'
+                     'contig "3"\textra field\n')
         self.taxonomy = {'GCF_000001.1': 'd__Bacteria;g__A;s__A one',
                          'GCF_000002.1': 'd__Bacteria;g__B;s__B two'}
 
@@ -217,7 +221,10 @@ class QueryParserTests(unittest.TestCase):
     def test_rows(self):
         # TODO: this is AI-generated code; human review pending
         df = _query_to_metadata(self.path, self.taxonomy).to_dataframe()
-        self.assertEqual(list(df.index), ['s1-GCF_000001.1', 's2-GCF_000002.1'])
+        self.assertEqual(list(df.index), ['s1-GCF_000001.1', 's1-GCF_000003.1',
+                                          's2-GCF_000002.1'])
+        self.assertEqual(df.loc['s1-GCF_000003.1', 'naive-ani'], 96.0)
+        self.assertTrue(pd.isna(df.loc['s1-GCF_000003.1', 'taxonomy']))
         self.assertEqual(list(df.columns), [
             'sample', 'accession', 'taxonomy', 'adjusted-ani',
             'effective-coverage', 'ani-5-percentile', 'ani-95-percentile',
@@ -236,9 +243,9 @@ class QueryParserTests(unittest.TestCase):
         # TODO: this is AI-generated code; human review pending
         by_taxon = _query_to_metadata(self.path, self.taxonomy, ['g__B;'])
         self.assertEqual(list(by_taxon.to_dataframe().index), ['s2-GCF_000002.1'])
-        by_accession = _query_to_metadata(self.path, self.taxonomy, ['GCF_000001.1'])
+        by_accession = _query_to_metadata(self.path, self.taxonomy, ['GCF_00000'])
         self.assertEqual(list(by_accession.to_dataframe().index),
-                         ['s1-GCF_000001.1'])
+                         ['s1-GCF_000001.1', 's1-GCF_000003.1', 's2-GCF_000002.1'])
         with self.assertRaisesRegex(ValueError, 'no reported genome matches'):
             _query_to_metadata(self.path, self.taxonomy, ['g__C;'])
 
