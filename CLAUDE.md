@@ -12,3 +12,11 @@ It was split out of q2-confluence on 2026-10-16: thin wrappers of sylph and sylp
  * Metadata and TSV column names use hyphens; action, parameter and output identifiers stay Python identifiers. `sample-id` is a reserved metadata ID header and cannot be a column name.
  * One concern per function and per commit; every action has one usage example and tests that compare it with a direct sylph or sylph-tax run on the fixture.
  * Commit messages name @gregcaporaso as the requester and say what Claude implemented, with the `Co-Authored-By` trailer; never push.
+
+## Environment and checks
+
+ * The development environment is `environment-files/mosh-sylph-rachis-tiny-dev.yml` (2026.10 tiny `passed` + sylph 1.0.0 + sylph-tax 1.9.2); the developer creates it as the named env `mosh-sylph-dev`. Use it without activation: `PATH=$D/bin:$PATH CONDA_PREFIX=$D MPLCONFIGDIR=$TMPDIR/mpl NUMBA_CACHE_DIR=$TMPDIR/numba`; for `rachis ... --help` and `rachis dev refresh-cache`, unset `CONDA_PREFIX` and set `HOME=$TMPDIR/home`.
+ * Until that env existed (2026-10-16) the code was developed in `qiime2-dev-2026-10-15` with sylph and sylph-tax unpacked from their bioconda packages into `$TMPDIR` and a `sitecustomize.py` limiting plugin discovery to q2-types, q2-metadata and mosh-sylph (that env's editable q2-taxa and q2-feature-table live in `~/4-git-repos`, which the sandbox cannot read). Prefer the real env.
+ * Before every commit: `flake8`, `q2lint`, `python -m pytest -q` (under a minute), and render `rachis sylph <action> --help` for every changed signature.
+ * rachis does not accept `Choices` on `Int`; `k` uses `Int % (Range(21, 22) | Range(31, 32))`.
+ * sylph writes a header-only TSV when nothing is detected; sylph-tax taxprof writes no file for such a sample; sketches and profile/query/taxprof/merge outputs are byte-identical to direct runs on the same files, which is what the tests check.
