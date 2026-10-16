@@ -1,0 +1,45 @@
+name: Test build
+
+on:
+  pull_request:
+    branches: ["main"]
+  push:
+    branches: ["main"]
+
+jobs:
+  build-mosh-sylph:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-15-intel]
+
+    steps:
+    - name: checkout source
+      uses: actions/checkout@v6.0.2
+
+    - name: Set up Conda
+      uses: qiime2-cutlery/setup-miniconda@v3
+      with:
+        activate-environment: mosh-sylph-dev
+        environment-file: environment-files/mosh-sylph-rachis-tiny-dev.yml
+        auto-activate-base: false
+
+    - name: Install plugin
+      shell: bash -l {0}
+      run: make install
+
+    - name: Call info on the deployment
+      shell: bash -l {0}
+      run: rachis info
+
+    - name: Call --help on plugin
+      shell: bash -l {0}
+      run: rachis sylph --help
+
+    - name: Test plugin
+      shell: bash -l {0}
+      run: make test
+
+    - name: Lint plugin
+      shell: bash -l {0}
+      run: make lint

@@ -1,0 +1,18 @@
+# Development environment: the 2026.10 "tiny" distribution (rachis, rachis-cli,
+# q2-types, q2-metadata) from the passed channel, sylph and sylph-tax from
+# bioconda, and the linters.
+#   conda env create -n mosh-sylph-dev --file environment-files/mosh-sylph-rachis-tiny-dev.yml
+#   conda activate mosh-sylph-dev && make dev
+channels:
+- https://packages.qiime2.org/qiime2/2026.10/tiny/passed
+- conda-forge
+- bioconda
+dependencies:
+  - rachis-tiny
+  - sylph=1.0.0
+  - sylph-tax=1.9.2
+  - flake8
+  - pytest
+  - pip
+  - pip:
+    - q2lint@https://github.com/qiime2/q2lint/archive/master.zip
