@@ -8,6 +8,9 @@
 
 from qiime2.plugin import (Bool, Choices, Citations, Float, Int, Plugin, Range,
                            Str)
+from q2_types.feature_data import FeatureData, Taxonomy
+from q2_types.feature_table import FeatureTable, RelativeFrequency
+from q2_types.metadata import ImmutableMetadata
 from q2_types.per_sample_sequences import PairedEndSequencesWithQuality
 from q2_types.sample_data import SampleData
 
@@ -15,7 +18,8 @@ from mosh_sylph import __version__
 from mosh_sylph._examples import (_fetch_database_example, _profile_example,
                                   _query_example, _sketch_example,
                                   _tax_download_example, _tax_merge_example,
-                                  _taxprof_example)
+                                  _taxprof_example, _taxprof_to_tables_example)
+from mosh_sylph._convert import taxprof_to_tables
 from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphDatabaseFormat,
                                  SylphMergedProfileDirFmt,
                                  SylphMergedProfileFormat,
@@ -276,8 +280,9 @@ plugin.methods.register_function(
     description=(
         'sylph-tax taxprof: joins the taxonomy to each detected genome and '
         'writes a MetaPhlAn-style profile per sample. Samples with no '
-        'detected genome get no file. A genome missing from the taxonomy is '
-        'reported under NO_TAXONOMY.' + _EXPERIMENTAL),
+        'detected genome get no file; taxprof-to-tables gives them an all-zero '
+        'column. A genome missing from the taxonomy is reported under '
+        'NO_TAXONOMY.' + _EXPERIMENTAL),
     citations=[citations['Shaw-Yu-2025']],
     examples={'taxprof_gtdb': _taxprof_example},
 )
@@ -301,4 +306,45 @@ plugin.methods.register_function(
                  'by side.' + _EXPERIMENTAL),
     citations=[citations['Shaw-Yu-2025']],
     examples={'tax_merge_relative_abundance': _tax_merge_example},
+)
+
+plugin.methods.register_function(
+    function=taxprof_to_tables,
+    inputs={'taxonomic_profiles': SylphTaxProfiles,
+            'sketches': SylphSketches},
+    parameters={},
+    outputs=[('taxonomic_abundance', FeatureTable[RelativeFrequency]),
+             ('sequence_abundance', FeatureTable[RelativeFrequency]),
+             ('taxonomy', FeatureData[Taxonomy]),
+             ('stats', ImmutableMetadata)],
+    input_descriptions={
+        'taxonomic_profiles': 'sylph-tax taxprof profiles of a GTDB database '
+                              '(seven ranks, d__ to s__, above each genome).',
+        'sketches': 'The sketches that were profiled: their sample IDs are '
+                    'the table\'s samples, so a sample in which sylph '
+                    'detected nothing gets an all-zero column.'},
+    output_descriptions={
+        'taxonomic_abundance': 'Genome-size-corrected abundance of each '
+                               'genome (sylph\'s Taxonomic_abundance), as '
+                               'proportions summing to 1 per sample with a '
+                               'detection.',
+        'sequence_abundance': 'Share of reads assigned to each genome '
+                              '(sylph\'s Sequence_abundance), renormalized '
+                              'to sum to 1 over the detected genomes.',
+        'taxonomy': 'The GTDB taxonomy of every genome in the tables, keyed '
+                    'by accession.',
+        'stats': 'Per sample: genomes and genera detected, median ANI of the '
+                 'detected genomes, and unknown-share, the share of reads '
+                 'not assigned to any database genome (meaningful only for a '
+                 'profile made with estimate-unknown; 0 otherwise, 1 when '
+                 'nothing was detected).'},
+    name='Feature tables and taxonomy from sylph-tax profiles',
+    description=(
+        'Converts sylph-tax taxprof profiles into genome-keyed feature tables '
+        '(features are accessions parsed from the t__ genome labels, e.g. '
+        'GCF_000023865.1), the matching taxonomy, and per-sample statistics. '
+        'Collapse the tables to a rank with taxa collapse and the taxonomy.'
+        + _EXPERIMENTAL),
+    citations=[citations['Shaw-Yu-2025']],
+    examples={'taxprof_to_tables': _taxprof_to_tables_example},
 )

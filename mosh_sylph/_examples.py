@@ -154,3 +154,23 @@ def _tax_merge_example(use):
                         column='relative_abundance'),
         use.UsageOutputNames(merged_profile='sylph-merged-relative-abundance'),
     )
+
+
+def _sketches_factory():
+    # TODO: this is AI-generated code; human review pending
+    from mosh_sylph.plugin_setup import plugin
+    sketches, = plugin.methods['sketch'](_reads_factory(), threads=1)
+    return sketches
+
+
+def _taxprof_to_tables_example(use):
+    # TODO: this is AI-generated code; human review pending
+    profiles = use.init_artifact('sylph-taxprof', _taxprof_factory)
+    sketches = use.init_artifact('sketches', _sketches_factory)
+    use.action(
+        use.UsageAction('sylph', 'taxprof_to_tables'),
+        use.UsageInputs(taxonomic_profiles=profiles, sketches=sketches),
+        use.UsageOutputNames(taxonomic_abundance='sylph-taxonomic-abundance',
+                             sequence_abundance='sylph-sequence-abundance',
+                             taxonomy='sylph-taxonomy', stats='sylph-stats'),
+    )
