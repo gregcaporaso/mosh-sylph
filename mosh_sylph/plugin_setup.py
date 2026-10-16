@@ -6,16 +6,19 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from qiime2.plugin import Choices, Citations, Plugin, Str
+from qiime2.plugin import Choices, Citations, Float, Int, Plugin, Range, Str
+from q2_types.per_sample_sequences import PairedEndSequencesWithQuality
+from q2_types.sample_data import SampleData
 
 from mosh_sylph import __version__
-from mosh_sylph._examples import (_fetch_database_example,
+from mosh_sylph._examples import (_fetch_database_example, _sketch_example,
                                   _tax_download_example)
 from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphDatabaseFormat,
+                                 SylphSketchesDirFmt, SylphSketchFormat,
                                  SylphTaxonomyDirFmt, SylphTaxonomyFormat)
-from mosh_sylph._sylph import fetch_database
+from mosh_sylph._sylph import fetch_database, sketch
 from mosh_sylph._sylph_tax import TAXONOMIES, tax_download
-from mosh_sylph._types import SylphDatabase, SylphTaxonomy
+from mosh_sylph._types import SylphDatabase, SylphSketches, SylphTaxonomy
 
 citations = Citations.load("citations.bib", package="mosh_sylph")
 
@@ -35,8 +38,9 @@ plugin = Plugin(
 _EXPERIMENTAL = ' EXPERIMENTAL: this is AI-generated code; human review pending.'
 
 plugin.register_formats(SylphDatabaseFormat, SylphDatabaseDirFmt,
-                        SylphTaxonomyFormat, SylphTaxonomyDirFmt)
-plugin.register_semantic_types(SylphDatabase, SylphTaxonomy)
+                        SylphTaxonomyFormat, SylphTaxonomyDirFmt,
+                        SylphSketchFormat, SylphSketchesDirFmt)
+plugin.register_semantic_types(SylphDatabase, SylphTaxonomy, SylphSketches)
 plugin.register_artifact_class(
     SylphDatabase, SylphDatabaseDirFmt,
     description='A two-stage sylph genome database (.syl2db, sylph >= 1.0.0), '
@@ -46,6 +50,10 @@ plugin.register_artifact_class(
     description='sylph-tax taxonomy metadata: a gzipped two-column table of '
                 'genome accession and taxonomy string, which sylph-tax taxprof '
                 'joins to sylph profiles.')
+plugin.register_artifact_class(
+    SylphSketches, SylphSketchesDirFmt,
+    description='sylph read sketches, one .sylsp file per sample, which sylph '
+                'profile and sylph query search against a database.')
 
 plugin.methods.register_function(
     function=fetch_database,
@@ -92,4 +100,35 @@ plugin.methods.register_function(
         + _EXPERIMENTAL),
     citations=[citations['Shaw-Yu-2025']],
     examples={'tax_download_gtdb_r232': _tax_download_example},
+)
+
+plugin.methods.register_function(
+    function=sketch,
+    inputs={'reads': SampleData[PairedEndSequencesWithQuality]},
+    parameters={'threads': Int % Range(1, None),
+                'c': Int % Range(1, None),
+                'k': Int % (Range(21, 22) | Range(31, 32)),
+                'fpr': Float % Range(0, 1, inclusive_end=False)},
+    outputs=[('sketches', SylphSketches)],
+    input_descriptions={'reads': 'Paired-end reads, one pair of files per '
+                                 'sample.'},
+    parameter_descriptions={
+        'threads': 'Threads (sylph sketch -t).',
+        'c': 'Subsampling rate (sylph sketch -c): one k-mer in c is kept. '
+             'Must match the database (200 for the pre-built GTDB '
+             'databases).',
+        'k': 'k-mer size (sylph sketch -k), 21 or 31. Must match the '
+             'database (31 for the pre-built GTDB databases).',
+        'fpr': 'False positive rate of the read deduplication hashing '
+               '(sylph sketch --fpr).'},
+    output_descriptions={'sketches': 'One sketch per sample, named by sample '
+                                     'ID.'},
+    name='Sketch reads',
+    description=('sylph sketch of every sample\'s read pairs (--l1, --l2, with '
+                 'the sample IDs as sketch names through --lS): the k-mer '
+                 'sketch that sylph profile and sylph query search. Sketch '
+                 'once, then profile and query as often as needed.'
+                 + _EXPERIMENTAL),
+    citations=[citations['Shaw-Yu-2025']],
+    examples={'sketch_reads': _sketch_example},
 )

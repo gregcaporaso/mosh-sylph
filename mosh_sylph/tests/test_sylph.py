@@ -9,12 +9,18 @@
 import filecmp
 import os
 import shutil
+import subprocess
 import tempfile
+
+import pandas as pd
 
 from qiime2.plugin import ValidationError
 from qiime2.plugin.testing import TestPluginBase
+from q2_types.per_sample_sequences import SingleLanePerSamplePairedEndFastqDirFmt
 
-from mosh_sylph._formats import SylphDatabaseDirFmt, SylphDatabaseFormat
+from mosh_sylph import _examples as ex
+from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphDatabaseFormat,
+                                 SylphSketchesDirFmt, SylphSketchFormat)
 from mosh_sylph._sylph import _database_url
 
 
@@ -58,3 +64,70 @@ class SylphDatabaseFormatTests(TestPluginBase):
             fh.flush()
             with self.assertRaisesRegex(ValidationError, 'two-stage'):
                 SylphDatabaseFormat(fh.name, mode='r').validate()
+
+
+def _sylph(*args):
+    # TODO: this is AI-generated code; human review pending
+    subprocess.run(['sylph', *args], check=True, stdout=subprocess.DEVNULL,
+                   stderr=subprocess.DEVNULL)
+
+
+def _read_paths(reads):
+    # TODO: this is AI-generated code; human review pending
+    """{sample id: (forward, reverse)} of a paired-end reads artifact."""
+    manifest = reads.view(SingleLanePerSamplePairedEndFastqDirFmt).manifest.view(
+        pd.DataFrame)
+    return {s: (r['forward'], r['reverse']) for s, r in manifest.iterrows()}
+
+
+class SketchTests(TestPluginBase):
+    package = 'mosh_sylph.tests'
+
+    def test_same_as_sylph_sketch(self):
+        # TODO: this is AI-generated code; human review pending
+        reads = ex._reads_factory()
+        sketches, = self.plugin.methods['sketch'](reads, threads=1)
+        self.assertEqual(str(sketches.type), 'SylphSketches')
+        paths = sketches.view(SylphSketchesDirFmt).sample_paths()
+        self.assertEqual(list(paths), ex._SAMPLES)
+        with tempfile.TemporaryDirectory() as d:
+            for sample, (r1, r2) in _read_paths(reads).items():
+                _sylph('sketch', '-t', '1', '-1', r1, '-2', r2, '-S', sample,
+                       '-d', d)
+                self.assertTrue(filecmp.cmp(
+                    os.path.join(d, f'{sample}.paired.sylsp'), paths[sample],
+                    shallow=False), sample)
+
+    def test_c_and_k_reach_sylph(self):
+        # TODO: this is AI-generated code; human review pending
+        reads = ex._reads_factory()
+        sketches, = self.plugin.methods['sketch'](reads, threads=1, c=100, k=21)
+        path = sketches.view(SylphSketchesDirFmt).sample_paths()['1135D']
+        with tempfile.TemporaryDirectory() as d:
+            r1, r2 = _read_paths(reads)['1135D']
+            _sylph('sketch', '-t', '1', '-c', '100', '-k', '21', '-1', r1, '-2',
+                   r2, '-S', '1135D', '-d', d)
+            self.assertTrue(filecmp.cmp(os.path.join(d, '1135D.paired.sylsp'),
+                                        path, shallow=False))
+
+
+class SylphSketchesFormatTests(TestPluginBase):
+    package = 'mosh_sylph.tests'
+
+    def test_empty_sketch(self):
+        # TODO: this is AI-generated code; human review pending
+        with tempfile.TemporaryDirectory() as d:
+            open(os.path.join(d, 's1.paired.sylsp'), 'wb').close()
+            with self.assertRaisesRegex(ValidationError, 'empty sylph sketch'):
+                SylphSketchFormat(os.path.join(d, 's1.paired.sylsp'),
+                                  mode='r').validate()
+
+    def test_sample_paths(self):
+        # TODO: this is AI-generated code; human review pending
+        with tempfile.TemporaryDirectory() as d:
+            for s in ['b', 'a']:
+                with open(os.path.join(d, f'{s}.paired.sylsp'), 'wb') as fh:
+                    fh.write(b'x')
+            fmt = SylphSketchesDirFmt(d, mode='r')
+            fmt.validate()
+            self.assertEqual(list(fmt.sample_paths()), ['a', 'b'])

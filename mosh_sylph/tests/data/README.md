@@ -25,3 +25,13 @@ sylph convert-db-two-screen -t 3 -o fixture fixture.syldb
 ## `taxonomy.tsv.gz`
 
 Five rows of sylph-tax's GTDB r232 taxonomy metadata in its format (accession, tab, taxonomy string): the three database genomes and two others, taken from the r232 `.sylphmpa` profiles of the tutorial samples (the thermo-hec project's `bacon/wgs-nohost-f10/sylph/`).
+
+## `reads/`
+
+Read pairs of three tutorial samples (the q2-confluence tutorial's `wgs-subset-reads.qza`: fastp-trimmed, human reads removed, 10% subsample), chosen so that the database detects one genome in 1135D (*R. intestinale*), two in DB47D (*S. viridis* and *T. fusca*) and none in the soil sample 73F84, each beside an unknown share of about half the reads:
+
+ * From the first 400,000 pairs of each sample, in file order: the first 2,000 pairs whose forward read shares a 31-mer with the three genomes (genome k-mers taken every 16th position, both strands), then the first 2,000 pairs whose forward read shares none.
+   73F84 has only 484 such pairs among its first 400,000, all of which are kept.
+ * Gzipped with mtime 0, as `<sample>_R1.fastq.gz` and `<sample>_R2.fastq.gz`.
+
+Coverage is 0.05x to 0.24x, low enough that sylph's ANI intervals overshoot 100 (sylph query's 95th percentile reaches 101.4 for *T. fusca* in DB47D).

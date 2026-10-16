@@ -10,6 +10,7 @@
 reads or writes it."""
 
 import gzip
+import os
 
 from qiime2.plugin import model
 
@@ -52,3 +53,31 @@ class SylphTaxonomyFormat(model.BinaryFileFormat):
 
 SylphTaxonomyDirFmt = model.SingleFileDirectoryFormat(
     'SylphTaxonomyDirFmt', 'taxonomy.tsv.gz', SylphTaxonomyFormat)
+
+
+class SylphSketchFormat(model.BinaryFileFormat):
+    """One sample's read sketch (.sylsp), as sylph sketch writes it."""
+
+    def _validate_(self, level):
+        # TODO: this is AI-generated code; human review pending
+        if os.path.getsize(str(self)) == 0:
+            raise model.ValidationError('empty sylph sketch')
+
+
+class SylphSketchesDirFmt(model.DirectoryFormat):
+    """Per-sample read sketches named <sample-id>.paired.sylsp, as sylph
+    sketch names paired-end sketches given sample names with --lS."""
+    sketches = model.FileCollection(r'.+\.paired\.sylsp$',
+                                    format=SylphSketchFormat)
+
+    @sketches.set_path_maker
+    def _sketch_path(self, sample_id):
+        # TODO: this is AI-generated code; human review pending
+        return f'{sample_id}.paired.sylsp'
+
+    def sample_paths(self):
+        # TODO: this is AI-generated code; human review pending
+        """{sample id: sketch path}, sorted by sample id."""
+        suffix = '.paired.sylsp'
+        return {f[:-len(suffix)]: os.path.join(str(self), f)
+                for f in sorted(os.listdir(str(self))) if f.endswith(suffix)}
