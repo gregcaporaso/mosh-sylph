@@ -108,3 +108,30 @@ def _query_example(use):
         use.UsageInputs(sketches=sketches, database=database, threads=1),
         use.UsageOutputNames(query='sylph-query'),
     )
+
+
+def _taxonomy_factory():
+    # TODO: this is AI-generated code; human review pending
+    from mosh_sylph._formats import SylphTaxonomyFormat
+    return Artifact.import_data('SylphTaxonomy', _data_path('taxonomy.tsv.gz'),
+                                SylphTaxonomyFormat)
+
+
+def _profile_factory():
+    # TODO: this is AI-generated code; human review pending
+    from mosh_sylph.plugin_setup import plugin
+    sketches, = plugin.methods['sketch'](_reads_factory(), threads=1)
+    profile, = plugin.methods['profile'](sketches, _database_factory(),
+                                         threads=1, estimate_unknown=True)
+    return profile
+
+
+def _taxprof_example(use):
+    # TODO: this is AI-generated code; human review pending
+    profile = use.init_artifact('sylph-profile', _profile_factory)
+    taxonomy = use.init_artifact('sylph-taxonomy', _taxonomy_factory)
+    use.action(
+        use.UsageAction('sylph', 'taxprof'),
+        use.UsageInputs(profile=profile, sylph_taxonomy=taxonomy),
+        use.UsageOutputNames(taxonomic_profiles='sylph-taxprof'),
+    )

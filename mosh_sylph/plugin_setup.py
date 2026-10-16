@@ -14,16 +14,17 @@ from q2_types.sample_data import SampleData
 from mosh_sylph import __version__
 from mosh_sylph._examples import (_fetch_database_example, _profile_example,
                                   _query_example, _sketch_example,
-                                  _tax_download_example)
+                                  _tax_download_example, _taxprof_example)
 from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphDatabaseFormat,
                                  SylphProfileDirFmt, SylphProfileFormat,
                                  SylphQueryDirFmt, SylphQueryFormat,
                                  SylphSketchesDirFmt, SylphSketchFormat,
-                                 SylphTaxonomyDirFmt, SylphTaxonomyFormat)
+                                 SylphMpaFormat, SylphTaxonomyDirFmt,
+                                 SylphTaxonomyFormat, SylphTaxProfilesDirFmt)
 from mosh_sylph._sylph import fetch_database, profile, query, sketch
-from mosh_sylph._sylph_tax import TAXONOMIES, tax_download
+from mosh_sylph._sylph_tax import TAXONOMIES, tax_download, taxprof
 from mosh_sylph._types import (SylphDatabase, SylphProfile, SylphQuery,
-                               SylphSketches, SylphTaxonomy)
+                               SylphSketches, SylphTaxonomy, SylphTaxProfiles)
 
 citations = Citations.load("citations.bib", package="mosh_sylph")
 
@@ -71,9 +72,10 @@ plugin.register_formats(SylphDatabaseFormat, SylphDatabaseDirFmt,
                         SylphTaxonomyFormat, SylphTaxonomyDirFmt,
                         SylphSketchFormat, SylphSketchesDirFmt,
                         SylphProfileFormat, SylphProfileDirFmt,
-                        SylphQueryFormat, SylphQueryDirFmt)
+                        SylphQueryFormat, SylphQueryDirFmt,
+                        SylphMpaFormat, SylphTaxProfilesDirFmt)
 plugin.register_semantic_types(SylphDatabase, SylphTaxonomy, SylphSketches,
-                               SylphProfile, SylphQuery)
+                               SylphProfile, SylphQuery, SylphTaxProfiles)
 plugin.register_artifact_class(
     SylphDatabase, SylphDatabaseDirFmt,
     description='A two-stage sylph genome database (.syl2db, sylph >= 1.0.0), '
@@ -97,6 +99,11 @@ plugin.register_artifact_class(
     description='sylph query output: a TSV with one row per sample and '
                 'database genome with enough sampled k-mers (containment ANI, '
                 'coverage), as sylph writes it.')
+plugin.register_artifact_class(
+    SylphTaxProfiles, SylphTaxProfilesDirFmt,
+    description='sylph-tax taxprof output: one .sylphmpa taxonomic profile '
+                'per sample in which sylph detected a genome, as sylph-tax '
+                'writes them.')
 
 plugin.methods.register_function(
     function=fetch_database,
@@ -238,4 +245,27 @@ plugin.methods.register_function(
         + _EXPERIMENTAL),
     citations=[citations['Shaw-Yu-2025']],
     examples={'query_sketches': _query_example},
+)
+
+plugin.methods.register_function(
+    function=taxprof,
+    inputs={'profile': SylphProfile, 'sylph_taxonomy': SylphTaxonomy},
+    parameters={},
+    outputs=[('taxonomic_profiles', SylphTaxProfiles)],
+    input_descriptions={
+        'profile': 'A sylph profile.',
+        'sylph_taxonomy': 'sylph-tax taxonomy metadata for the profile\'s '
+                          'database (GTDB_r232 for the r232 database).'},
+    output_descriptions={
+        'taxonomic_profiles': 'One .sylphmpa file per sample in which sylph '
+                              'detected a genome: abundances summed at every '
+                              'rank from domain to genome (t__).'},
+    name='Add taxonomy to a sylph profile',
+    description=(
+        'sylph-tax taxprof: joins the taxonomy to each detected genome and '
+        'writes a MetaPhlAn-style profile per sample. Samples with no '
+        'detected genome get no file. A genome missing from the taxonomy is '
+        'reported under NO_TAXONOMY.' + _EXPERIMENTAL),
+    citations=[citations['Shaw-Yu-2025']],
+    examples={'taxprof_gtdb': _taxprof_example},
 )

@@ -114,3 +114,27 @@ class SylphQueryFormat(_SylphTSVFormat):
 
 SylphQueryDirFmt = model.SingleFileDirectoryFormat(
     'SylphQueryDirFmt', 'query.tsv', SylphQueryFormat)
+
+
+class SylphMpaFormat(model.TextFileFormat):
+    """One sample's sylph-tax taxonomic profile (.sylphmpa)."""
+
+    def _validate_(self, level):
+        # TODO: this is AI-generated code; human review pending
+        with open(str(self)) as fh:
+            first, second = fh.readline(), fh.readline()
+        if not first.startswith('#SampleID\t'):
+            raise model.ValidationError('expected a #SampleID header line')
+        if not second.startswith('clade_name\trelative_abundance\t'):
+            raise model.ValidationError('expected the clade_name column header')
+
+
+class SylphTaxProfilesDirFmt(model.DirectoryFormat):
+    """sylph-tax taxprof output: <sample-id>.sylphmpa per sample in which
+    sylph detected a genome."""
+    profiles = model.FileCollection(r'.+\.sylphmpa$', format=SylphMpaFormat)
+
+    @profiles.set_path_maker
+    def _profile_path(self, sample_id):
+        # TODO: this is AI-generated code; human review pending
+        return f'{sample_id}.sylphmpa'

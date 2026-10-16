@@ -13,8 +13,9 @@ import os
 from sylph_tax.metadata_files import (__metadata_file_urls__,
                                       __name_to_metadata_file__)
 
-from mosh_sylph._formats import SylphTaxonomyDirFmt
-from mosh_sylph._util import _download
+from mosh_sylph._formats import (SylphProfileDirFmt, SylphTaxonomyDirFmt,
+                                 SylphTaxProfilesDirFmt)
+from mosh_sylph._util import _download, _run
 
 TAXONOMIES = list(__name_to_metadata_file__)
 
@@ -33,3 +34,19 @@ def tax_download(taxonomy: str) -> SylphTaxonomyDirFmt:
     fmt = SylphTaxonomyDirFmt()
     _download(_taxonomy_url(taxonomy), os.path.join(str(fmt), 'taxonomy.tsv.gz'))
     return fmt
+
+
+def taxprof(profile: SylphProfileDirFmt, sylph_taxonomy: SylphTaxonomyDirFmt
+            ) -> SylphTaxProfilesDirFmt:
+    # TODO: this is AI-generated code; human review pending
+    """sylph-tax taxprof of a sylph profile with the given taxonomy."""
+    path = os.path.join(str(profile), 'profile.tsv')
+    with open(path) as fh:
+        if sum(1 for _ in fh) < 2:
+            raise ValueError('sylph profile detected no genome in any sample, '
+                             'so sylph-tax taxprof has nothing to annotate')
+    result = SylphTaxProfilesDirFmt()
+    _run(['sylph-tax', '--no-config', 'taxprof', path,
+          '-t', os.path.join(str(sylph_taxonomy), 'taxonomy.tsv.gz'),
+          '-o', str(result) + os.sep])
+    return result
