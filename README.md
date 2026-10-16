@@ -69,25 +69,44 @@ rachis sylph taxprof-to-tables --i-taxonomic-profiles sylph-taxprof.qza \
 
 The database is 19 GB; keeping it and the sketches in an artifact cache (`--use-cache`) avoids unzipping them on every run.
 
-## Install (development version)
+## Development installation
 
-The development environment is the 2026.10 *tiny* distribution from the `passed` channel plus sylph 1.0.0 and sylph-tax 1.9.2 from bioconda:
+The plugin targets the unreleased 2026.10 epoch, so the base environment is a distribution's development environment, created as in the [QIIME 2 development environment guide](https://develop.qiime2.org/en/stable/plugins/how-to-guides/set-up-development-environment.html) from the distribution's `dev/latest/passed` environment file for your platform; the plugin's extras (sylph, sylph-tax, the test and lint tools) are layered on with `conda env update`.
+The *tiny* distribution (rachis, rachis-cli, q2-types, q2-metadata) is all the plugin needs.
+The guide names such environments by date (`tiny-dev-$(date "+%Y-%m-%d")`); the fixed name `mosh-sylph-dev` is used below.
+
+Linux (x86_64):
 
 ```shell
-conda env create -n mosh-sylph-dev --file environment-files/mosh-sylph-rachis-tiny-dev.yml
+conda env create -n mosh-sylph-dev --file https://raw.githubusercontent.com/qiime2/distributions/dev/latest/passed/rachis-tiny-linux-64-conda.yml
+```
+
+macOS on Apple Silicon (the tiny distribution has a native arm64 build, so no Rosetta):
+
+```shell
+conda env create -n mosh-sylph-dev --file https://raw.githubusercontent.com/qiime2/distributions/dev/latest/passed/rachis-tiny-osx-arm64-conda.yml
+```
+
+macOS on Intel uses `rachis-tiny-osx-64-conda.yml`.
+Then, in the activated environment, from this directory:
+
+```shell
 conda activate mosh-sylph-dev
+conda env update -n mosh-sylph-dev --file environment-files/mosh-sylph-dev-extras.yml
 make dev
 rachis dev refresh-cache
 rachis sylph --help
 ```
 
-The plugin needs only rachis, q2-types, sylph and sylph-tax, so it also installs into the moshpit and qiime2 distributions once sylph and sylph-tax are added (`conda install -c conda-forge -c bioconda sylph=1.0.0 sylph-tax=1.9.2`, then `pip install .` and `rachis dev refresh-cache`).
+The dev environment files are rebuilt as the distribution's packages change; recreate the environment every few weeks, as the guide suggests.
 
-## Checks
+Run the tests and the linters with:
 
 ```shell
-make lint
 make test
+make lint
 ```
+
+To use the plugin inside the moshpit or qiime2 distribution instead, create that distribution's development environment the same way (`rachis-moshpit-linux-64-conda.yml`; `rachis-qiime2-<platform>-conda.yml`, which on Apple Silicon needs the guide's `CONDA_SUBDIR=osx-64` steps because that distribution has no arm64 build), then apply the same extras file and `make dev`.
 
 The tests compare every action with a direct sylph or sylph-tax run on a small real fixture (`mosh_sylph/tests/data/`, described in its README) and execute every usage example; the suite takes under a minute.

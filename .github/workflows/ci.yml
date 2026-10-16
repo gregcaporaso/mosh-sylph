@@ -11,18 +11,34 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-15-intel]
+        include:
+          - os: ubuntu-latest
+            subdir: linux-64
+          - os: macos-15-intel
+            subdir: osx-64
 
     steps:
     - name: checkout source
       uses: actions/checkout@v6.0.2
 
+    # The base environment is the tiny distribution's development environment,
+    # as in the QIIME 2 dev-environment guide; the plugin's extras are layered
+    # on with conda env update (README, "Development installation").
+    - name: fetch the tiny distribution's dev environment file
+      run: |
+        curl -sSL -o rachis-tiny-dev.yml \
+          https://raw.githubusercontent.com/qiime2/distributions/dev/latest/passed/rachis-tiny-${{ matrix.subdir }}-conda.yml
+
     - name: Set up Conda
       uses: qiime2-cutlery/setup-miniconda@v3
       with:
         activate-environment: mosh-sylph-dev
-        environment-file: environment-files/mosh-sylph-rachis-tiny-dev.yml
+        environment-file: rachis-tiny-dev.yml
         auto-activate-base: false
+
+    - name: Add the plugin's extras
+      shell: bash -l {0}
+      run: conda env update -n mosh-sylph-dev --file environment-files/mosh-sylph-dev-extras.yml
 
     - name: Install plugin
       shell: bash -l {0}
