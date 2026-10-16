@@ -43,7 +43,8 @@ def taxprof(profile: SylphProfileDirFmt, sylph_taxonomy: SylphTaxonomyDirFmt
     """sylph-tax taxprof of a sylph profile with the given taxonomy."""
     path = os.path.join(str(profile), 'profile.tsv')
     with open(path) as fh:
-        if sum(1 for _ in fh) < 2:
+        fh.readline()
+        if not fh.readline():
             raise ValueError('sylph profile detected no genome in any sample, '
                              'so sylph-tax taxprof has nothing to annotate')
     result = SylphTaxProfilesDirFmt()
