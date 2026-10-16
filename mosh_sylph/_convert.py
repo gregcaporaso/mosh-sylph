@@ -13,6 +13,8 @@ genome-keyed taxonomy and two relative tables: taxonomic abundance (genome-size
 corrected, roughly a share of cells) and sequence abundance (share of reads,
 renormalized over the detected genomes, so the unknown share that sylph
 profile -u estimates is reported per sample instead of as a missing remainder).
+query-to-metadata turns sylph query output into one metadata row per sample
+and genome with the taxonomy joined.
 """
 
 import os
@@ -23,7 +25,8 @@ import numpy as np
 import pandas as pd
 import qiime2
 
-from mosh_sylph._formats import SylphSketchesDirFmt, SylphTaxProfilesDirFmt
+from mosh_sylph._formats import (SylphQueryDirFmt, SylphSketchesDirFmt,
+                                 SylphTaxonomyDirFmt, SylphTaxProfilesDirFmt)
 
 RANKS = ('d__', 'p__', 'c__', 'o__', 'f__', 'g__', 's__')
 
@@ -123,3 +126,54 @@ def taxprof_to_tables(taxonomic_profiles: SylphTaxProfilesDirFmt,
              if f.endswith('.sylphmpa')]
     rel, seq, tax, stats = _tables(paths, list(sketches.sample_paths()))
     return rel, seq, tax, qiime2.Metadata(stats)
+
+
+def _read_taxonomy(sylph_taxonomy):
+    # TODO: this is AI-generated code; human review pending
+    """{accession: taxonomy string} from sylph-tax taxonomy metadata."""
+    path = os.path.join(str(sylph_taxonomy), 'taxonomy.tsv.gz')
+    df = pd.read_csv(path, sep='\t', header=None, usecols=[0, 1], dtype=str)
+    return df.set_index(0)[1].to_dict()
+
+
+def _query_to_metadata(path, taxonomy, targets=None):
+    # TODO: this is AI-generated code; human review pending
+    """sylph query output -> one row per sample and genome, ID
+    '<sample>-<accession>' (sample-id is reserved for the ID header), the
+    taxonomy joined by accession, and the 5-95 percentile interval split into
+    two numeric columns (NA -> missing). `targets`: keep only rows whose
+    taxonomy or accession contains one."""
+    try:
+        df = pd.read_csv(path, sep='\t', dtype=str)
+    except pd.errors.EmptyDataError:
+        df = pd.DataFrame()
+    if df.empty:
+        raise ValueError('sylph query reported no genome with enough sampled '
+                         'k-mers in any sample')
+    out = pd.DataFrame({'sample': df['Sample_file'],
+                        'accession': df['Genome_file'].map(_accession)})
+    out['taxonomy'] = out['accession'].map(taxonomy)
+    out['adjusted-ani'] = pd.to_numeric(df['Adjusted_ANI'])
+    out['effective-coverage'] = pd.to_numeric(df['Eff_cov'])
+    interval = df['ANI_5-95_percentile'].str.split('-', n=1, expand=True)
+    out['ani-5-percentile'] = pd.to_numeric(interval[0], errors='coerce')
+    out['ani-95-percentile'] = pd.to_numeric(interval[1], errors='coerce')
+    out['containment-index'] = df['Containment_ind']
+    out['naive-ani'] = pd.to_numeric(df['Naive_ANI'])
+    if targets:
+        lineage = out['taxonomy'].fillna('') + ' ' + out['accession']
+        out = out[lineage.apply(lambda s: any(t in s for t in targets))]
+        if out.empty:
+            raise ValueError(f'no reported genome matches the targets {targets}')
+    out = out.sort_values(['sample', 'accession'])
+    out.index = pd.Index(out['sample'] + '-' + out['accession'], name='id')
+    return qiime2.Metadata(out)
+
+
+def query_to_metadata(query: SylphQueryDirFmt,
+                      sylph_taxonomy: SylphTaxonomyDirFmt,
+                      targets: list = None) -> qiime2.Metadata:
+    # TODO: this is AI-generated code; human review pending
+    """sylph query output with the taxonomy joined, as metadata."""
+    return _query_to_metadata(os.path.join(str(query), 'query.tsv'),
+                              _read_taxonomy(sylph_taxonomy), targets)

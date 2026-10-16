@@ -6,8 +6,8 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from qiime2.plugin import (Bool, Choices, Citations, Float, Int, Plugin, Range,
-                           Str)
+from qiime2.plugin import (Bool, Choices, Citations, Float, Int, List, Plugin,
+                           Range, Str)
 from q2_types.feature_data import FeatureData, Taxonomy
 from q2_types.feature_table import FeatureTable, RelativeFrequency
 from q2_types.metadata import ImmutableMetadata
@@ -16,10 +16,11 @@ from q2_types.sample_data import SampleData
 
 from mosh_sylph import __version__
 from mosh_sylph._examples import (_fetch_database_example, _profile_example,
-                                  _query_example, _sketch_example,
+                                  _query_example, _query_to_metadata_example,
+                                  _sketch_example,
                                   _tax_download_example, _tax_merge_example,
                                   _taxprof_example, _taxprof_to_tables_example)
-from mosh_sylph._convert import taxprof_to_tables
+from mosh_sylph._convert import query_to_metadata, taxprof_to_tables
 from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphDatabaseFormat,
                                  SylphMergedProfileDirFmt,
                                  SylphMergedProfileFormat,
@@ -347,4 +348,36 @@ plugin.methods.register_function(
         + _EXPERIMENTAL),
     citations=[citations['Shaw-Yu-2025']],
     examples={'taxprof_to_tables': _taxprof_to_tables_example},
+)
+
+plugin.methods.register_function(
+    function=query_to_metadata,
+    inputs={'query': SylphQuery, 'sylph_taxonomy': SylphTaxonomy},
+    parameters={'targets': List[Str]},
+    outputs=[('query_metadata', ImmutableMetadata)],
+    input_descriptions={
+        'query': 'A sylph query result.',
+        'sylph_taxonomy': 'sylph-tax taxonomy metadata for the query\'s '
+                          'database.'},
+    parameter_descriptions={
+        'targets': 'Keep only genomes whose taxonomy string or accession '
+                   'contains one of these texts (e.g. g__Thermobifida; or '
+                   'GCF_001592045.1); all genomes when omitted.'},
+    output_descriptions={
+        'query_metadata': 'One row per sample and genome, ID '
+                          '<sample-id>-<accession>, with columns sample, '
+                          'accession, taxonomy, adjusted-ani, '
+                          'effective-coverage, ani-5-percentile and '
+                          'ani-95-percentile (sylph\'s 5-95 percentile '
+                          'interval, missing when sylph reports NA), '
+                          'containment-index and naive-ani.'},
+    name='Metadata from a sylph query',
+    description=(
+        'Tabulates sylph query output with the taxonomy joined by accession, '
+        'for metadata tabulate or filtering. At effective coverage below '
+        'about 0.1x the adjusted ANI and its interval overshoot (the 95th '
+        'percentile can exceed 100); read such rows with the containment '
+        'index and naive ANI.' + _EXPERIMENTAL),
+    citations=[citations['Shaw-Yu-2025']],
+    examples={'query_to_metadata_thermobifida': _query_to_metadata_example},
 )

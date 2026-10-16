@@ -174,3 +174,23 @@ def _taxprof_to_tables_example(use):
                              sequence_abundance='sylph-sequence-abundance',
                              taxonomy='sylph-taxonomy', stats='sylph-stats'),
     )
+
+
+def _query_factory():
+    # TODO: this is AI-generated code; human review pending
+    from mosh_sylph.plugin_setup import plugin
+    result, = plugin.methods['query'](_sketches_factory(), _database_factory(),
+                                      threads=1)
+    return result
+
+
+def _query_to_metadata_example(use):
+    # TODO: this is AI-generated code; human review pending
+    query = use.init_artifact('sylph-query', _query_factory)
+    taxonomy = use.init_artifact('sylph-taxonomy', _taxonomy_factory)
+    use.action(
+        use.UsageAction('sylph', 'query_to_metadata'),
+        use.UsageInputs(query=query, sylph_taxonomy=taxonomy,
+                        targets=['g__Thermobifida;']),
+        use.UsageOutputNames(query_metadata='thermobifida-query'),
+    )

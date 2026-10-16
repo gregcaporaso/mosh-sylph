@@ -8,17 +8,20 @@
 
 import io
 import os
+import shutil
 import tempfile
 import unittest
 
 import biom
+import numpy as np
 import pandas as pd
 import qiime2
 from qiime2.plugin.testing import TestPluginBase
 
 from mosh_sylph import _examples as ex
-from mosh_sylph._convert import _accession, _read_sylphmpa, _tables
-from mosh_sylph._formats import SylphProfileDirFmt
+from mosh_sylph._convert import (_accession, _query_to_metadata, _read_sylphmpa,
+                                 _tables)
+from mosh_sylph._formats import SylphProfileDirFmt, SylphQueryDirFmt
 
 LINEAGE = ('d__Bacteria|p__Bacillota_A|c__Clostridia|o__Lachnospirales|'
            'f__Lachnospiraceae|g__Blautia')
@@ -182,3 +185,104 @@ class TaxprofToTablesTests(TestPluginBase):
                          'd__Bacteria;p__Actinomycetota;c__Actinomycetes;'
                          'o__Streptosporangiales;f__Streptosporangiaceae;'
                          'g__Thermobifida;s__Thermobifida fusca')
+
+
+_QUERY_HEADER = ('Sample_file\tGenome_file\tAdjusted_ANI\tEff_cov\t'
+                 'ANI_5-95_percentile\tEff_lambda\tLambda_5-95_percentile\t'
+                 'Median_cov\tMean_cov_geq1\tContainment_ind\tNaive_ANI\t'
+                 'Contig_name\n')
+
+
+class QueryParserTests(unittest.TestCase):
+
+    def setUp(self):
+        # TODO: this is AI-generated code; human review pending
+        self.dir = tempfile.mkdtemp()
+        self.path = os.path.join(self.dir, 'query.tsv')
+        with open(self.path, 'w') as fh:
+            fh.write(_QUERY_HEADER)
+            fh.write('s2\t/db/GCF_000002.1_genomic.fna.gz\t97.50\t0.080\t'
+                     '96.1-101.2\t0.08\t0.05-0.11\t1\t1.000\t60/900\t95.10\t'
+                     'GCF_000002.1\n')
+            fh.write('s1\t/db/GCF_000001.1_genomic.fna.gz\t100.00\t15.000\t'
+                     'NA-NA\tHIGH\tNA-NA\t15\t15.485\t270/270\t100.00\t'
+                     'GCF_000001.1\n')
+        self.taxonomy = {'GCF_000001.1': 'd__Bacteria;g__A;s__A one',
+                         'GCF_000002.1': 'd__Bacteria;g__B;s__B two'}
+
+    def tearDown(self):
+        # TODO: this is AI-generated code; human review pending
+        shutil.rmtree(self.dir)
+
+    def test_rows(self):
+        # TODO: this is AI-generated code; human review pending
+        df = _query_to_metadata(self.path, self.taxonomy).to_dataframe()
+        self.assertEqual(list(df.index), ['s1-GCF_000001.1', 's2-GCF_000002.1'])
+        self.assertEqual(list(df.columns), [
+            'sample', 'accession', 'taxonomy', 'adjusted-ani',
+            'effective-coverage', 'ani-5-percentile', 'ani-95-percentile',
+            'containment-index', 'naive-ani'])
+        self.assertEqual(df.loc['s2-GCF_000002.1', 'taxonomy'],
+                         'd__Bacteria;g__B;s__B two')
+        self.assertEqual(df.loc['s2-GCF_000002.1', 'adjusted-ani'], 97.5)
+        self.assertEqual(df.loc['s2-GCF_000002.1', 'effective-coverage'], 0.08)
+        self.assertEqual(df.loc['s2-GCF_000002.1', 'ani-5-percentile'], 96.1)
+        self.assertEqual(df.loc['s2-GCF_000002.1', 'ani-95-percentile'], 101.2)
+        self.assertTrue(np.isnan(df.loc['s1-GCF_000001.1', 'ani-5-percentile']))
+        self.assertEqual(df.loc['s1-GCF_000001.1', 'containment-index'], '270/270')
+        self.assertEqual(df.loc['s1-GCF_000001.1', 'naive-ani'], 100.0)
+
+    def test_targets(self):
+        # TODO: this is AI-generated code; human review pending
+        by_taxon = _query_to_metadata(self.path, self.taxonomy, ['g__B;'])
+        self.assertEqual(list(by_taxon.to_dataframe().index), ['s2-GCF_000002.1'])
+        by_accession = _query_to_metadata(self.path, self.taxonomy, ['GCF_000001.1'])
+        self.assertEqual(list(by_accession.to_dataframe().index),
+                         ['s1-GCF_000001.1'])
+        with self.assertRaisesRegex(ValueError, 'no reported genome matches'):
+            _query_to_metadata(self.path, self.taxonomy, ['g__C;'])
+
+    def test_empty(self):
+        # TODO: this is AI-generated code; human review pending
+        with open(self.path, 'w') as fh:
+            fh.write(_QUERY_HEADER)
+        with self.assertRaisesRegex(ValueError, 'no genome with enough'):
+            _query_to_metadata(self.path, self.taxonomy)
+
+
+class QueryToMetadataTests(TestPluginBase):
+    package = 'mosh_sylph.tests'
+
+    def test_fixture_against_sylph_query(self):
+        # TODO: this is AI-generated code; human review pending
+        query = ex._query_factory()
+        md, = self.plugin.methods['query_to_metadata'](query,
+                                                       ex._taxonomy_factory())
+        self.assertEqual(str(md.type), 'ImmutableMetadata')
+        df = md.view(qiime2.Metadata).to_dataframe()
+        with open(os.path.join(str(query.view(SylphQueryDirFmt)),
+                               'query.tsv')) as fh:
+            direct = pd.read_csv(io.StringIO(fh.read()), sep='\t', dtype=str)
+        self.assertEqual(len(df), len(direct))
+        for _, r in direct.iterrows():
+            row = df.loc[f"{r['Sample_file']}-{_accession(r['Genome_file'])}"]
+            self.assertEqual(row['adjusted-ani'], float(r['Adjusted_ANI']))
+            self.assertEqual(row['effective-coverage'], float(r['Eff_cov']))
+            self.assertEqual(row['containment-index'], r['Containment_ind'])
+            self.assertEqual(row['naive-ani'], float(r['Naive_ANI']))
+            low, high = r['ANI_5-95_percentile'].split('-')
+            self.assertEqual(row['ani-5-percentile'], float(low))
+            self.assertEqual(row['ani-95-percentile'], float(high))
+        # T. fusca in DB47D at 0.05x: the interval overshoots 100
+        self.assertGreater(df.loc['DB47D-GCF_001592045.1', 'ani-95-percentile'],
+                           100)
+        self.assertTrue(df.loc['DB47D-GCF_001592045.1', 'taxonomy'].endswith(
+            'g__Thermobifida;s__Thermobifida fusca'))
+
+    def test_targets(self):
+        # TODO: this is AI-generated code; human review pending
+        md, = self.plugin.methods['query_to_metadata'](
+            ex._query_factory(), ex._taxonomy_factory(),
+            targets=['g__Thermobifida;'])
+        self.assertEqual(list(md.view(qiime2.Metadata).to_dataframe().index),
+                         ['DB47D-GCF_001592045.1'])
