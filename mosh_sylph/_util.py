@@ -17,6 +17,6 @@ def _download(url, path):
             fh.write(chunk)
 
 
-def _run(cmd, env=None):
+def _run(cmd):
     # TODO: this is AI-generated code; human review pending
-    subprocess.run(cmd, check=True, env=env)
+    subprocess.run(cmd, check=True)
