@@ -19,6 +19,9 @@ from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphProfileDirFmt,
 from mosh_sylph._util import _download, _run
 
 DEFAULT_BASE_URL = 'http://faust.compbio.cs.cmu.edu/sylph-stuff'
+# GTDB releases the sylph authors have built a two-stage database for. Keep
+# this list in release order: the last entry is the default release.
+GTDB_RELEASES = ['226', '232']
 
 
 def _database_url(base_url, release):
@@ -27,7 +30,7 @@ def _database_url(base_url, release):
     return f'{base_url.rstrip("/")}/gtdb-r{release}-c200-dbv2.syl2db'
 
 
-def fetch_database(release: str,
+def fetch_database(release: str = GTDB_RELEASES[-1],
                    base_url: str = DEFAULT_BASE_URL) -> SylphDatabaseDirFmt:
     # TODO: this is AI-generated code; human review pending
     """Download the sylph authors' pre-built GTDB database of a release."""

@@ -29,7 +29,8 @@ from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphDatabaseFormat,
                                  SylphSketchesDirFmt, SylphSketchFormat,
                                  SylphMpaFormat, SylphTaxonomyDirFmt,
                                  SylphTaxonomyFormat, SylphTaxProfilesDirFmt)
-from mosh_sylph._sylph import fetch_database, profile, query, sketch
+from mosh_sylph._sylph import (GTDB_RELEASES, fetch_database, profile, query,
+                               sketch)
 from mosh_sylph._sylph_tax import (MERGE_COLUMNS, TAXONOMIES, tax_download,
                                    tax_merge, taxprof)
 from mosh_sylph._types import (SylphDatabase, SylphMergedProfile, SylphProfile,
@@ -43,11 +44,10 @@ plugin = Plugin(
     version=__version__,
     website="https://github.com/gregcaporaso/mosh-sylph",
     package="mosh_sylph",
-    description=("Thin wrappers of the sylph metagenome profiler and sylph-tax: "
-                 "one action per command, each returning the tool's own output "
-                 "as an artifact, and conversions of those outputs to feature "
-                 "tables, taxonomies and metadata."),
-    short_description="sylph metagenome profiling and sylph-tax taxonomy.",
+    description=("Thin wrappers of the sylph metagenome profiler and sylph-tax "
+                 "and conversions of those outputs to feature tables, "
+                 "taxonomies and metadata."),
+    short_description="sylph and sylph-tax metagenome profiling.",
     citations=[citations['Shaw-Yu-2025']]
 )
 
@@ -125,12 +125,12 @@ plugin.register_artifact_class(
 plugin.methods.register_function(
     function=fetch_database,
     inputs={},
-    parameters={'release': Str % Choices(['226', '232']),
+    parameters={'release': Str % Choices(GTDB_RELEASES),
                 'base_url': Str},
     outputs=[('database', SylphDatabase)],
     parameter_descriptions={
-        'release': 'GTDB release. The authors build two-stage databases for '
-                   'r226 and r232 only.',
+        'release': 'GTDB release; the newest one the authors have built a '
+                   'database for by default.',
         'base_url': 'Where the file gtdb-r<release>-c200-dbv2.syl2db is '
                     'downloaded from: the authors\' server by default; their '
                     'mirror is https://storage.googleapis.com/sylph-stuff.'},
@@ -141,8 +141,8 @@ plugin.methods.register_function(
     name='Download a pre-built sylph GTDB database',
     description=(
         'Downloads the sylph authors\' pre-built two-stage database of the GTDB '
-        'species representatives for one release (14 GB for r226, 19 GB for '
-        'r232). Reads must be sketched with the same c (200) and k (31).'
+        'species representatives for one release. Reads must be sketched with '
+        'the same c (200) and k (31).'
         + _EXPERIMENTAL),
     citations=[citations['Shaw-Yu-2025']],
     examples={'fetch_database_r232': _fetch_database_example},
@@ -154,8 +154,9 @@ plugin.methods.register_function(
     parameters={'taxonomy': Str % Choices(TAXONOMIES)},
     outputs=[('sylph_taxonomy', SylphTaxonomy)],
     parameter_descriptions={
-        'taxonomy': 'sylph-tax\'s identifier of the taxonomy; GTDB_r226 and '
-                    'GTDB_r232 match the databases fetch-database downloads.'},
+        'taxonomy': 'sylph-tax\'s identifier of the taxonomy; GTDB_r<release> '
+                    'matches the database fetch-database downloads for that '
+                    'release.'},
     output_descriptions={
         'sylph_taxonomy': 'The taxonomy metadata file, as sylph-tax download '
                           'stores it.'},
@@ -272,7 +273,7 @@ plugin.methods.register_function(
     input_descriptions={
         'profile': 'A sylph profile.',
         'sylph_taxonomy': 'sylph-tax taxonomy metadata for the profile\'s '
-                          'database (GTDB_r232 for the r232 database).'},
+                          'database (GTDB_r<release> for a GTDB database).'},
     output_descriptions={
         'taxonomic_profiles': 'One .sylphmpa file per sample in which sylph '
                               'detected a genome: abundances summed at every '

@@ -10,7 +10,7 @@ The tutorial that uses it, integrating a sylph metagenome profile with a 16S pro
 
 | Action | Wraps | Inputs | Parameters | Outputs |
 |---|---|---|---|---|
-| `fetch-database` | download of the authors' pre-built GTDB database | | `release` (`226`, `232`), `base_url` (default `http://faust.compbio.cs.cmu.edu/sylph-stuff`) | `database`: `SylphDatabase` |
+| `fetch-database` | download of the authors' pre-built GTDB database | | `release` (the newest listed by default), `base_url` (default `http://faust.compbio.cs.cmu.edu/sylph-stuff`) | `database`: `SylphDatabase` |
 | `tax-download` | `sylph-tax download`, one taxonomy | | `taxonomy` (sylph-tax identifiers, e.g. `GTDB_r232`) | `sylph_taxonomy`: `SylphTaxonomy` |
 | `sketch` | `sylph sketch` (paired-end reads) | `reads`: `SampleData[PairedEndSequencesWithQuality]` | `threads`, `c` (200), `k` (31; 21 or 31), `fpr` | `sketches`: `SylphSketches` |
 | `profile` | `sylph profile` | `sketches`: `SylphSketches`, `database`: `SylphDatabase` | `threads`, `minimum_ani` (95), `min_number_kmers`, `min_contain`, `min_count_correct`, `estimate_unknown` (off, as in sylph), `read_seq_id`, `screen_ani` | `profile`: `SylphProfile` |

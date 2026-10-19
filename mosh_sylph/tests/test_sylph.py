@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 
 import filecmp
+import inspect
 import io
 import os
 import shutil
@@ -24,7 +25,7 @@ from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphDatabaseFormat,
                                  SylphProfileDirFmt, SylphProfileFormat,
                                  SylphQueryDirFmt, SylphQueryFormat,
                                  SylphSketchesDirFmt, SylphSketchFormat)
-from mosh_sylph._sylph import _database_url
+from mosh_sylph._sylph import GTDB_RELEASES, _database_url, fetch_database
 
 
 class FetchDatabaseTests(TestPluginBase):
@@ -41,6 +42,15 @@ class FetchDatabaseTests(TestPluginBase):
         path = os.path.join(str(database.view(SylphDatabaseDirFmt)),
                             'database.syl2db')
         self.assertTrue(filecmp.cmp(path, source, shallow=False))
+
+    def test_default_release_is_the_last_listed(self):
+        # TODO: this is AI-generated code; human review pending
+        self.assertEqual(GTDB_RELEASES, sorted(GTDB_RELEASES, key=int))
+        default = inspect.signature(fetch_database).parameters['release']
+        self.assertEqual(default.default, GTDB_RELEASES[-1])
+        self.assertEqual(
+            self.plugin.methods['fetch_database'].signature
+                .parameters['release'].default, GTDB_RELEASES[-1])
 
     def test_url(self):
         # TODO: this is AI-generated code; human review pending
