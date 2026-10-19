@@ -4,7 +4,7 @@ A [QIIME 2](https://qiime2.org) plugin (registered name `sylph`; `rachis sylph <
 Each wrapper runs one sylph or sylph-tax command and returns the tool's own output as an artifact; two conversion actions turn those outputs into stock QIIME 2 types.
 The plugin was [created from the template](https://develop.qiime2.org/en/stable/plugins/tutorials/create-from-template.html) and is experimental: its code is AI-generated and under review.
 
-The tutorial that uses it, integrating a sylph metagenome profile with a 16S profile through [q2-confluence](https://github.com/gregcaporaso/q2-confluence), is the [thermo-hec-tutorial](https://github.com/gregcaporaso/thermo-hec-tutorial) repository, published at https://thermo-hec-tutorial.readthedocs.io; this repository carries no documentation site of its own.
+The tutorial that uses it, integrating a sylph metagenome profile with a 16S profile through [q2-confluence](https://github.com/gregcaporaso/q2-confluence), is the [thermo-hec-tutorial](https://github.com/gregcaporaso/thermo-hec-tutorial) repository; this repository carries no documentation of its own.
 
 ## Actions
 
