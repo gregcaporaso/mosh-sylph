@@ -11,12 +11,11 @@ import urllib.request
 
 
 def _download(url, path):
-    # TODO: this is AI-generated code; human review pending
     with urllib.request.urlopen(url) as r, open(path, 'wb') as fh:
+        # read chunks of 1 MiB
         while chunk := r.read(1 << 20):
             fh.write(chunk)
 
 
 def _run(cmd):
-    # TODO: this is AI-generated code; human review pending
     subprocess.run(cmd, check=True)

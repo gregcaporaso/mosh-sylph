@@ -60,7 +60,6 @@ MERGE_COLUMNS = ['relative_abundance', 'sequence_abundance', 'ANI', 'Coverage']
 
 
 def _taxonomy_url(taxonomy):
-    # TODO: this is AI-generated code; human review pending
     """sylph-tax's download URL for one of its taxonomy identifiers."""
     return TAXONOMIES[taxonomy]
 
