@@ -151,7 +151,7 @@ plugin.methods.register_function(
 plugin.methods.register_function(
     function=tax_download,
     inputs={},
-    parameters={'taxonomy': Str % Choices(TAXONOMIES)},
+    parameters={'taxonomy': Str % Choices(list(TAXONOMIES))},
     outputs=[('sylph_taxonomy', SylphTaxonomy)],
     parameter_descriptions={
         'taxonomy': 'sylph-tax\'s identifier of the taxonomy; GTDB_r<release> '

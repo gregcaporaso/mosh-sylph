@@ -29,7 +29,6 @@ class TaxDownloadTests(TestPluginBase):
     package = 'mosh_sylph.tests'
 
     def test_download_is_the_file(self):
-        # TODO: this is AI-generated code; human review pending
         source = self.get_data_path('taxonomy.tsv.gz')
         with mock.patch('mosh_sylph._sylph_tax._taxonomy_url',
                         return_value='file://' + source) as url:
@@ -40,8 +39,24 @@ class TaxDownloadTests(TestPluginBase):
                             'taxonomy.tsv.gz')
         self.assertTrue(filecmp.cmp(path, source, shallow=False))
 
-    def test_urls_are_sylph_tax_urls(self):
+    def test_table_matches_sylph_tax(self):
         # TODO: this is AI-generated code; human review pending
+        # TAXONOMIES in _sylph_tax.py is a copy of the installed sylph-tax's
+        # table; this is the one place the plugin reads sylph-tax's dunder
+        # names. When this fails after a sylph-tax upgrade, rebuild the
+        # plugin's table from the two names below (identifier -> file name,
+        # and the URL ending in that file name), in sylph-tax's order.
+        from sylph_tax.metadata_files import (__metadata_file_urls__,
+                                              __name_to_metadata_file__)
+        expected = {}
+        for identifier, file_name in __name_to_metadata_file__.items():
+            url, = [u for u in __metadata_file_urls__
+                    if u.endswith('/' + file_name)]
+            expected[identifier] = url
+        self.assertEqual(TAXONOMIES, expected)
+        self.assertEqual(list(TAXONOMIES), list(expected))
+
+    def test_urls_are_sylph_tax_urls(self):
         self.assertIn('GTDB_r232', TAXONOMIES)
         self.assertEqual(_taxonomy_url('GTDB_r232'),
                          'https://zenodo.org/records/19646381/files/'
@@ -54,12 +69,10 @@ class SylphTaxonomyFormatTests(TestPluginBase):
     package = 'mosh_sylph.tests'
 
     def test_valid(self):
-        # TODO: this is AI-generated code; human review pending
         SylphTaxonomyFormat(self.get_data_path('taxonomy.tsv.gz'),
                             mode='r').validate()
 
     def test_one_column(self):
-        # TODO: this is AI-generated code; human review pending
         with tempfile.NamedTemporaryFile(suffix='.gz') as fh:
             with gzip.open(fh.name, 'wt') as gz:
                 gz.write('GCF_1.1\n')
@@ -67,7 +80,6 @@ class SylphTaxonomyFormatTests(TestPluginBase):
                 SylphTaxonomyFormat(fh.name, mode='r').validate()
 
     def test_not_gzipped(self):
-        # TODO: this is AI-generated code; human review pending
         with tempfile.NamedTemporaryFile(suffix='.gz') as fh:
             fh.write(b'GCF_1.1\td__Bacteria\n')
             fh.flush()
