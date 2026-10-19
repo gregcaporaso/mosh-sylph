@@ -109,14 +109,12 @@ def _query_example(use):
 
 
 def _taxonomy_factory():
-    # TODO: this is AI-generated code; human review pending
     from mosh_sylph._formats import SylphTaxonomyFormat
     return Artifact.import_data('SylphTaxonomy', _data_path('taxonomy.tsv.gz'),
                                 SylphTaxonomyFormat)
 
 
 def _profile_factory():
-    # TODO: this is AI-generated code; human review pending
     from mosh_sylph.plugin_setup import plugin
     sketches, = plugin.methods['sketch'](_reads_factory(), threads=1)
     profile, = plugin.methods['profile'](sketches, _database_factory(),

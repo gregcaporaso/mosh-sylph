@@ -40,7 +40,6 @@ class TaxDownloadTests(TestPluginBase):
         self.assertTrue(filecmp.cmp(path, source, shallow=False))
 
     def test_table_matches_sylph_tax(self):
-        # TODO: this is AI-generated code; human review pending
         # TAXONOMIES in _sylph_tax.py is a copy of the installed sylph-tax's
         # table; this is the one place the plugin reads sylph-tax's dunder
         # names. When this fails after a sylph-tax upgrade, rebuild the
@@ -88,13 +87,11 @@ class SylphTaxonomyFormatTests(TestPluginBase):
 
 
 def _sylph_tax(*args):
-    # TODO: this is AI-generated code; human review pending
     subprocess.run(['sylph-tax', '--no-config', *args], check=True,
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
 def _read_dir(path):
-    # TODO: this is AI-generated code; human review pending
     """{file name: text} of a directory."""
     out = {}
     for f in sorted(os.listdir(path)):
@@ -108,7 +105,6 @@ class TaxprofTests(TestPluginBase):
 
     @classmethod
     def setUpClass(cls):
-        # TODO: this is AI-generated code; human review pending
         super().setUpClass()
         cls.profile = ex._profile_factory()
         cls.taxonomy = ex._taxonomy_factory()
@@ -118,7 +114,6 @@ class TaxprofTests(TestPluginBase):
             str(cls.taxonomy.view(SylphTaxonomyDirFmt)), 'taxonomy.tsv.gz')
 
     def test_same_as_sylph_tax_taxprof(self):
-        # TODO: this is AI-generated code; human review pending
         result, = self.plugin.methods['taxprof'](self.profile, self.taxonomy)
         self.assertEqual(str(result.type), 'SylphTaxProfiles')
         observed = _read_dir(str(result.view(SylphTaxProfilesDirFmt)))
@@ -133,7 +128,6 @@ class TaxprofTests(TestPluginBase):
                       't__GCF_001592045.1', observed['DB47D.sylphmpa'])
 
     def test_nothing_detected(self):
-        # TODO: this is AI-generated code; human review pending
         with open(self.profile_path) as fh:
             header = fh.readline()
         with tempfile.TemporaryDirectory() as d:
@@ -149,7 +143,6 @@ class TaxMergeTests(TestPluginBase):
 
     @classmethod
     def setUpClass(cls):
-        # TODO: this is AI-generated code; human review pending
         super().setUpClass()
         cls.profiles = ex._taxprof_factory()
         directory = str(cls.profiles.view(SylphTaxProfilesDirFmt))
@@ -157,7 +150,6 @@ class TaxMergeTests(TestPluginBase):
                      for f in sorted(os.listdir(directory))]
 
     def test_same_as_sylph_tax_merge(self):
-        # TODO: this is AI-generated code; human review pending
         for column in MERGE_COLUMNS:
             with self.subTest(column=column):
                 merged, = self.plugin.methods['tax_merge'](
@@ -179,7 +171,6 @@ class SylphMpaFormatTests(TestPluginBase):
     package = 'mosh_sylph.tests'
 
     def test_not_sylphmpa(self):
-        # TODO: this is AI-generated code; human review pending
         with tempfile.NamedTemporaryFile('w', suffix='.sylphmpa') as fh:
             fh.write('clade_name\trelative_abundance\n')
             fh.flush()
