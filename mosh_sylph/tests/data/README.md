@@ -5,7 +5,7 @@ Built on 2026-10-16 with sylph 1.0.0 and sylph-tax 1.9.2.
 
 ## `fixture.syl2db`
 
-A two-stage sylph database of three GTDB r232 species representatives that the thermo-hec tutorial samples contain, downloaded from NCBI and named as in the authors' GTDB databases (`<accession>_genomic.fna.gz`):
+A two-stage sylph database of three GTDB r232 species representatives that the [thermo-hec-tutorial](https://github.com/gregcaporaso/thermo-hec-tutorial) samples contain, downloaded from NCBI and named as in the authors' GTDB databases (`<accession>_genomic.fna.gz`):
 
 | Accession | GTDB r232 species | Size |
 |---|---|---|
@@ -24,11 +24,11 @@ sylph convert-db-two-screen -t 3 -o fixture fixture.syldb
 
 ## `taxonomy.tsv.gz`
 
-Five rows of sylph-tax's GTDB r232 taxonomy metadata in its format (accession, tab, taxonomy string): the three database genomes and two others, taken from the r232 `.sylphmpa` profiles of the tutorial samples (the thermo-hec project's `bacon/wgs-nohost-f10/sylph/`).
+Five rows of sylph-tax's GTDB r232 taxonomy metadata in its format (accession, tab, taxonomy string): the three database genomes and two others, taken from the tutorial's `taxprof` output for its samples (`.sylphmpa` profiles against the r232 database).
 
 ## `reads/`
 
-Read pairs of three tutorial samples (the q2-confluence tutorial's `wgs-subset-reads.qza`: fastp-trimmed, human reads removed, 10% subsample), chosen so that the database detects one genome in 1135D (*R. intestinale*), two in DB47D (*S. viridis* and *T. fusca*) and none in the soil sample 73F84, each beside an unknown share of about half the reads:
+Read pairs of three tutorial samples (the tutorial's `wgs-subset-reads.qza`; its data-preparation page describes the trimming, host-read removal and 10% subsample), chosen so that the database detects one genome in 1135D (*R. intestinale*), two in DB47D (*S. viridis* and *T. fusca*) and none in the soil sample 73F84, each beside an unknown share of about half the reads:
 
  * From the first 400,000 pairs of each sample, in file order: the first 2,000 pairs whose forward read shares a 31-mer with the three genomes (genome k-mers taken every 16th position, both strands), then the first 2,000 pairs whose forward read shares none.
    73F84 has only 484 such pairs among its first 400,000, all of which are kept.
