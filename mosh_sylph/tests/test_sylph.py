@@ -10,6 +10,7 @@ import filecmp
 import inspect
 import io
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -133,7 +134,6 @@ class SylphSketchesFormatTests(TestPluginBase):
                                   mode='r').validate()
 
     def test_not_a_sketch(self):
-        # TODO: this is AI-generated code; human review pending
         # sylph fails differently on a truncated file and on a long one.
         for content in [b'x', b'x' * 100]:
             with tempfile.TemporaryDirectory() as d:
@@ -147,7 +147,6 @@ class SylphSketchesFormatTests(TestPluginBase):
                     fmt.validate(level='max')
 
     def test_sample_paths(self):
-        # TODO: this is AI-generated code; human review pending
         # Real sketches of two fixture samples, named out of order.
         with tempfile.TemporaryDirectory() as d:
             for name, sample in [('b', '1135D'), ('a', 'DB47D')]:
@@ -167,7 +166,6 @@ class _SearchTestBase(TestPluginBase):
 
     @classmethod
     def setUpClass(cls):
-        # TODO: this is AI-generated code; human review pending
         super().setUpClass()
         from mosh_sylph.plugin_setup import plugin
         cls.sketches, = plugin.methods['sketch'](ex._reads_factory(), threads=1)
@@ -178,7 +176,6 @@ class _SearchTestBase(TestPluginBase):
             str(cls.database.view(SylphDatabaseDirFmt)), 'database.syl2db')
 
     def _direct(self, command, *options, sketch_paths=None):
-        # TODO: this is AI-generated code; human review pending
         """Output of `sylph <command>` run directly, as text."""
         with tempfile.TemporaryDirectory() as d:
             out = os.path.join(d, 'out.tsv')
@@ -191,7 +188,6 @@ class _SearchTestBase(TestPluginBase):
 class ProfileTests(_SearchTestBase):
 
     def _profile(self, **kwargs):
-        # TODO: this is AI-generated code; human review pending
         result, = self.plugin.methods['profile'](
             self.sketches, self.database, threads=1, **kwargs)
         self.assertEqual(str(result.type), 'SylphProfile')
@@ -200,7 +196,6 @@ class ProfileTests(_SearchTestBase):
             return fh.read()
 
     def test_same_as_sylph_profile(self):
-        # TODO: this is AI-generated code; human review pending
         observed = self._profile()
         self.assertEqual(observed, self._direct('profile'))
         df = pd.read_csv(io.StringIO(observed), sep='\t')
@@ -211,7 +206,6 @@ class ProfileTests(_SearchTestBase):
         self.assertIn('Eff_cov', df.columns)
 
     def test_estimate_unknown(self):
-        # TODO: this is AI-generated code; human review pending
         observed = self._profile(estimate_unknown=True)
         self.assertEqual(observed, self._direct('profile', '-u'))
         df = pd.read_csv(io.StringIO(observed), sep='\t')
@@ -223,7 +217,6 @@ class ProfileTests(_SearchTestBase):
                         75)
 
     def test_options_reach_sylph(self):
-        # TODO: this is AI-generated code; human review pending
         observed = self._profile(minimum_ani=99.5, min_number_kmers=20,
                                  estimate_unknown=True, read_seq_id=99.0)
         self.assertEqual(observed, self._direct(
@@ -232,11 +225,14 @@ class ProfileTests(_SearchTestBase):
         # T. fusca in DB47D sits at an adjusted ANI of about 99.4
         self.assertNotIn('GCF_001592045.1', observed)
 
-    def test_nothing_detected_is_a_header(self):
+    def test_profile_with_nothing_detected_is_the_header_line_only(self):
         # TODO: this is AI-generated code; human review pending
+        # sylph detects no genome in the soil sample 73F84, and then writes
+        # the column header line and no rows; the format accepts that file.
         soil = [p for p in self.sketch_paths if '73F84' in p]
         observed = self._direct('profile', sketch_paths=soil)
-        self.assertEqual(observed.count('\n'), 1)
+        header = '\t'.join(SylphProfileFormat.HEADER)
+        self.assertRegex(observed, '^' + re.escape(header) + r'[^\n]*\n$')
         with tempfile.NamedTemporaryFile('w', suffix='.tsv') as fh:
             fh.write(observed)
             fh.flush()
