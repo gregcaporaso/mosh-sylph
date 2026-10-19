@@ -45,10 +45,17 @@ Below about 0.1x effective coverage the adjusted ANI and its interval overshoot 
 A database or taxonomy file already on disk is imported as a single file:
 
 ```shell
-rachis tools import --type SylphDatabase --input-format SylphDatabaseFormat \
-  --input-path gtdb-r232-c200-dbv2.syl2db --output-path sylph-gtdb-r232.qza
-rachis tools import --type SylphTaxonomy --input-format SylphTaxonomyFormat \
-  --input-path gtdb_r232_metadata.tsv.gz --output-path sylph-taxonomy-gtdb-r232.qza
+rachis tools import \
+  --type SylphDatabase \
+  --input-format SylphDatabaseFormat \
+  --input-path gtdb-r232-c200-dbv2.syl2db \
+  --output-path sylph-gtdb-r232.qza
+
+rachis tools import \
+  --type SylphTaxonomy \
+  --input-format SylphTaxonomyFormat \
+  --input-path gtdb_r232_metadata.tsv.gz \
+  --output-path sylph-taxonomy-gtdb-r232.qza
 ```
 
 Only two-stage databases (`.syl2db`) are accepted; a single-stage `.syldb` converts with `sylph convert-db-two-screen`.
@@ -56,45 +63,74 @@ Only two-stage databases (`.syl2db`) are accepted; a single-stage `.syldb` conve
 ## Typical use
 
 ```shell
-rachis sylph fetch-database --p-release 232 --o-database sylph-gtdb-r232.qza
-rachis sylph tax-download --p-taxonomy GTDB_r232 --o-sylph-taxonomy sylph-taxonomy-gtdb-r232.qza
-rachis sylph sketch --i-reads reads.qza --p-threads 8 --o-sketches sketches.qza
-rachis sylph profile --i-sketches sketches.qza --i-database sylph-gtdb-r232.qza \
-  --p-estimate-unknown --p-threads 8 --o-profile sylph-profile.qza
-rachis sylph taxprof --i-profile sylph-profile.qza \
-  --i-sylph-taxonomy sylph-taxonomy-gtdb-r232.qza --o-taxonomic-profiles sylph-taxprof.qza
-rachis sylph taxprof-to-tables --i-taxonomic-profiles sylph-taxprof.qza \
-  --i-sketches sketches.qza --o-taxonomic-abundance sylph-taxonomic-abundance.qza \
-  --o-sequence-abundance sylph-sequence-abundance.qza --o-taxonomy sylph-taxonomy.qza \
+rachis sylph fetch-database \
+  --p-release 232 \
+  --o-database sylph-gtdb-r232.qza
+
+rachis sylph tax-download \
+  --p-taxonomy GTDB_r232 \
+  --o-sylph-taxonomy sylph-taxonomy-gtdb-r232.qza
+
+rachis sylph sketch \
+  --i-reads reads.qza \
+  --p-threads 8 \
+  --o-sketches sketches.qza
+
+rachis sylph profile \
+  --i-sketches sketches.qza \
+  --i-database sylph-gtdb-r232.qza \
+  --p-estimate-unknown \
+  --p-threads 8 \
+  --o-profile sylph-profile.qza
+
+rachis sylph taxprof \
+  --i-profile sylph-profile.qza \
+  --i-sylph-taxonomy sylph-taxonomy-gtdb-r232.qza \
+  --o-taxonomic-profiles sylph-taxprof.qza
+
+rachis sylph taxprof-to-tables \
+  --i-taxonomic-profiles sylph-taxprof.qza \
+  --i-sketches sketches.qza \
+  --o-taxonomic-abundance sylph-taxonomic-abundance.qza \
+  --o-sequence-abundance sylph-sequence-abundance.qza \
+  --o-taxonomy sylph-taxonomy.qza \
   --o-stats sylph-stats.qza
 ```
 
-The database is 19 GB; keeping it and the sketches in an artifact cache (`--use-cache`) avoids unzipping them on every run.
+The database is 19 GB; the [tutorial](https://github.com/gregcaporaso/thermo-hec-tutorial) shows how to keep it, its taxonomy and the sketches in an artifact cache.
 
 ## Development installation
 
 The plugin targets the unreleased 2026.10 epoch, so the base environment is a distribution's development environment, created as in the [QIIME 2 development environment guide](https://develop.qiime2.org/en/stable/plugins/how-to-guides/set-up-development-environment.html) from the distribution's `dev/latest/passed` environment file for your platform; the plugin's extras (sylph, sylph-tax, the test and lint tools) are layered on with `conda env update`.
 The *tiny* distribution (rachis, rachis-cli, q2-types, q2-metadata) is all the plugin needs.
-The guide names such environments by date (`tiny-dev-$(date "+%Y-%m-%d")`); the fixed name `mosh-sylph-dev` is used below.
+As the guide suggests, the environment is named by its creation date (`mosh-sylph-dev-$(date "+%Y-%m-%d")`), so that a later rebuild can exist beside it; run the commands below on one day, or spell out the name.
 
 Linux (x86_64):
 
 ```shell
-conda env create -n mosh-sylph-dev --file https://raw.githubusercontent.com/qiime2/distributions/dev/latest/passed/rachis-tiny-linux-64-conda.yml
+conda env create \
+  -n mosh-sylph-dev-$(date "+%Y-%m-%d") \
+  --file https://raw.githubusercontent.com/qiime2/distributions/dev/latest/passed/rachis-tiny-linux-64-conda.yml
 ```
 
 macOS on Apple Silicon (the tiny distribution has a native arm64 build, so no Rosetta):
 
 ```shell
-conda env create -n mosh-sylph-dev --file https://raw.githubusercontent.com/qiime2/distributions/dev/latest/passed/rachis-tiny-osx-arm64-conda.yml
+conda env create \
+  -n mosh-sylph-dev-$(date "+%Y-%m-%d") \
+  --file https://raw.githubusercontent.com/qiime2/distributions/dev/latest/passed/rachis-tiny-osx-arm64-conda.yml
 ```
 
 macOS on Intel uses `rachis-tiny-osx-64-conda.yml`.
 Then, in the activated environment, from this directory:
 
 ```shell
-conda activate mosh-sylph-dev
-conda env update -n mosh-sylph-dev --file environment-files/mosh-sylph-dev-extras.yml
+conda activate mosh-sylph-dev-$(date "+%Y-%m-%d")
+
+conda env update \
+  -n mosh-sylph-dev-$(date "+%Y-%m-%d") \
+  --file environment-files/mosh-sylph-dev-extras.yml
+
 make dev
 rachis dev refresh-cache
 rachis sylph --help
