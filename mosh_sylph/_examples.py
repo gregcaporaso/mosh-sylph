@@ -47,7 +47,6 @@ def _tax_download_example(use):
 
 
 def _reads_factory():
-    # TODO: this is AI-generated code; human review pending
     with tempfile.TemporaryDirectory() as work:
         manifest = os.path.join(work, 'manifest.tsv')
         with open(manifest, 'w') as fh:
@@ -71,7 +70,6 @@ def _sketch_example(use):
 
 
 def _database_factory():
-    # TODO: this is AI-generated code; human review pending
     from mosh_sylph._formats import SylphDatabaseFormat
     return Artifact.import_data('SylphDatabase', _data_path('fixture.syl2db'),
                                 SylphDatabaseFormat)

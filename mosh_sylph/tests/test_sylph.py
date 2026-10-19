@@ -86,7 +86,6 @@ def _sylph(*args):
 
 
 def _read_paths(reads):
-    # TODO: this is AI-generated code; human review pending
     """{sample id: (forward, reverse)} of a paired-end reads artifact."""
     manifest = reads.view(SingleLanePerSamplePairedEndFastqDirFmt).manifest.view(
         pd.DataFrame)
@@ -116,7 +115,6 @@ class SketchTests(TestPluginBase):
         self._assert_same_as_sylph_sketch(sketches, reads)
 
     def test_c_and_k_reach_sylph(self):
-        # TODO: this is AI-generated code; human review pending
         reads = ex._reads_factory()
         sketches, = self.plugin.methods['sketch'](reads, threads=1, c=100, k=21)
         self._assert_same_as_sylph_sketch(sketches, reads, '-c', '100',
@@ -226,7 +224,6 @@ class ProfileTests(_SearchTestBase):
         self.assertNotIn('GCF_001592045.1', observed)
 
     def test_profile_with_nothing_detected_is_the_header_line_only(self):
-        # TODO: this is AI-generated code; human review pending
         # sylph detects no genome in the soil sample 73F84, and then writes
         # the column header line and no rows; the format accepts that file.
         soil = [p for p in self.sketch_paths if '73F84' in p]
@@ -239,7 +236,6 @@ class ProfileTests(_SearchTestBase):
             SylphProfileFormat(fh.name, mode='r').validate()
 
     def test_format_rejects_query_output(self):
-        # TODO: this is AI-generated code; human review pending
         with tempfile.NamedTemporaryFile('w', suffix='.tsv') as fh:
             fh.write(self._direct('query'))
             fh.flush()
@@ -250,7 +246,6 @@ class ProfileTests(_SearchTestBase):
 class QueryTests(_SearchTestBase):
 
     def _query(self, **kwargs):
-        # TODO: this is AI-generated code; human review pending
         result, = self.plugin.methods['query'](
             self.sketches, self.database, threads=1, **kwargs)
         self.assertEqual(str(result.type), 'SylphQuery')
@@ -259,7 +254,6 @@ class QueryTests(_SearchTestBase):
             return fh.read()
 
     def test_same_as_sylph_query(self):
-        # TODO: this is AI-generated code; human review pending
         observed = self._query()
         self.assertEqual(observed, self._direct('query'))
         df = pd.read_csv(io.StringIO(observed), sep='\t')
@@ -269,7 +263,6 @@ class QueryTests(_SearchTestBase):
             ('DB47D', 'genomes/GCF_001592045.1_genomic.fna.gz')])
 
     def test_options_reach_sylph(self):
-        # TODO: this is AI-generated code; human review pending
         observed = self._query(min_number_kmers=12000, screen_ani=80.0)
         self.assertEqual(observed, self._direct(
             'query', '--min-number-kmers', '12000', '--screen-ani', '80.0'))
@@ -278,7 +271,6 @@ class QueryTests(_SearchTestBase):
         self.assertNotIn('1135D', observed)
 
     def test_format_rejects_profile_output(self):
-        # TODO: this is AI-generated code; human review pending
         with tempfile.NamedTemporaryFile('w', suffix='.tsv') as fh:
             fh.write(self._direct('profile'))
             fh.flush()
