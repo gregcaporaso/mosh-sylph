@@ -43,9 +43,15 @@ class FetchDatabaseTests(TestPluginBase):
                             'database.syl2db')
         self.assertTrue(filecmp.cmp(path, source, shallow=False))
 
+    def test_releases_in_numeric_order(self):
+        # TODO: this is AI-generated code; human review pending
+        # The last entry is the default release, so the list must stay
+        # ordered as new releases are added.
+        self.assertEqual(GTDB_RELEASES, sorted(GTDB_RELEASES, key=int))
+        self.assertEqual(len(GTDB_RELEASES), len(set(GTDB_RELEASES)))
+
     def test_default_release_is_the_last_listed(self):
         # TODO: this is AI-generated code; human review pending
-        self.assertEqual(GTDB_RELEASES, sorted(GTDB_RELEASES, key=int))
         default = inspect.signature(fetch_database).parameters['release']
         self.assertEqual(default.default, GTDB_RELEASES[-1])
         self.assertEqual(
