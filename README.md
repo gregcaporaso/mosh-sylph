@@ -59,6 +59,7 @@ rachis tools import \
 ```
 
 Only two-stage databases (`.syl2db`) are accepted; a single-stage `.syldb` converts with `sylph convert-db-two-screen`.
+A sketch file has no header to recognize it by, so importing one runs `sylph inspect` on it (the full validation level); an action's own sketches are only checked for emptiness.
 
 ## Typical use
 

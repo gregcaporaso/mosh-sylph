@@ -11,6 +11,7 @@ reads or writes it."""
 
 import gzip
 import os
+import subprocess
 
 from qiime2.plugin import model
 
@@ -56,12 +57,24 @@ SylphTaxonomyDirFmt = model.SingleFileDirectoryFormat(
 
 
 class SylphSketchFormat(model.BinaryFileFormat):
-    """One sample's read sketch (.sylsp), as sylph sketch writes it."""
+    """One sample's read sketch (.sylsp), as sylph sketch writes it. The file
+    has no header to recognize it by, so at level max `sylph inspect` decides
+    whether the installed sylph can read it; at level min (action outputs,
+    which sylph itself wrote) only an empty file is rejected."""
 
     def _validate_(self, level):
         # TODO: this is AI-generated code; human review pending
         if os.path.getsize(str(self)) == 0:
             raise model.ValidationError('empty sylph sketch')
+        if level == 'max':
+            run = subprocess.run(['sylph', 'inspect', str(self)],
+                                 capture_output=True, text=True)
+            if run.returncode != 0:
+                said = [line for line in run.stderr.splitlines()
+                        if line and not line.startswith('note:')]
+                raise model.ValidationError(
+                    'sylph inspect cannot read this sketch: '
+                    + (said[-1] if said else f'exit status {run.returncode}'))
 
 
 class SylphSketchesDirFmt(model.DirectoryFormat):

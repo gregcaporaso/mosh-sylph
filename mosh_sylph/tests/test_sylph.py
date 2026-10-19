@@ -96,7 +96,6 @@ class SketchTests(TestPluginBase):
     package = 'mosh_sylph.tests'
 
     def _assert_same_as_sylph_sketch(self, sketches, reads, *options):
-        # TODO: this is AI-generated code; human review pending
         """Every sample's sketch equals a direct `sylph sketch` of its reads
         with the same options."""
         paths = sketches.view(SylphSketchesDirFmt).sample_paths()
@@ -127,21 +126,37 @@ class SylphSketchesFormatTests(TestPluginBase):
     package = 'mosh_sylph.tests'
 
     def test_empty_sketch(self):
-        # TODO: this is AI-generated code; human review pending
         with tempfile.TemporaryDirectory() as d:
             open(os.path.join(d, 's1.paired.sylsp'), 'wb').close()
             with self.assertRaisesRegex(ValidationError, 'empty sylph sketch'):
                 SylphSketchFormat(os.path.join(d, 's1.paired.sylsp'),
                                   mode='r').validate()
 
+    def test_not_a_sketch(self):
+        # TODO: this is AI-generated code; human review pending
+        # sylph fails differently on a truncated file and on a long one.
+        for content in [b'x', b'x' * 100]:
+            with tempfile.TemporaryDirectory() as d:
+                path = os.path.join(d, 's1.paired.sylsp')
+                with open(path, 'wb') as fh:
+                    fh.write(content)
+                fmt = SylphSketchFormat(path, mode='r')
+                fmt.validate(level='min')
+                with self.assertRaisesRegex(
+                        ValidationError, 'sylph inspect cannot read'):
+                    fmt.validate(level='max')
+
     def test_sample_paths(self):
         # TODO: this is AI-generated code; human review pending
+        # Real sketches of two fixture samples, named out of order.
         with tempfile.TemporaryDirectory() as d:
-            for s in ['b', 'a']:
-                with open(os.path.join(d, f'{s}.paired.sylsp'), 'wb') as fh:
-                    fh.write(b'x')
+            for name, sample in [('b', '1135D'), ('a', 'DB47D')]:
+                _sylph('sketch', '-t', '1',
+                       '-1', self.get_data_path(f'reads/{sample}_R1.fastq.gz'),
+                       '-2', self.get_data_path(f'reads/{sample}_R2.fastq.gz'),
+                       '-S', name, '-d', d)
             fmt = SylphSketchesDirFmt(d, mode='r')
-            fmt.validate()
+            fmt.validate(level='max')
             self.assertEqual(list(fmt.sample_paths()), ['a', 'b'])
 
 
