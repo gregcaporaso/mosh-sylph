@@ -14,7 +14,8 @@ from mosh_sylph.plugin_setup import plugin
 class SignatureTests(unittest.TestCase):
 
     def test_output_names_distinct_from_inputs_and_parameters(self):
-        # TODO: this is AI-generated code; human review pending
+        # TODO: confirm that this is a real issue - if so, we should document
+        # this in *Developing with rachis*, or fix in the framework.
         # q2cli classifies each signature entry by name, so an output named
         # like an input or parameter is rendered as that input and gets no
         # --o- option (frequency's output was named table, like its input).
