@@ -164,8 +164,7 @@ plugin.methods.register_function(
     description=(
         'Downloads the taxonomy metadata file that sylph-tax download fetches '
         'for one taxonomy identifier, from the URL sylph-tax lists for it '
-        '(sylph-tax download itself fetches every taxonomy at once).'
-        + _EXPERIMENTAL),
+        '(sylph-tax download itself fetches every taxonomy at once).'),
     citations=[citations['Shaw-Yu-2025']],
     examples={'tax_download_gtdb_r232': _tax_download_example},
 )
@@ -284,7 +283,7 @@ plugin.methods.register_function(
         'writes a MetaPhlAn-style profile per sample. Samples with no '
         'detected genome get no file; taxprof-to-tables gives them an all-zero '
         'column. A genome missing from the taxonomy is reported under '
-        'NO_TAXONOMY.' + _EXPERIMENTAL),
+        'NO_TAXONOMY.'),
     citations=[citations['Shaw-Yu-2025']],
     examples={'taxprof_gtdb': _taxprof_example},
 )
