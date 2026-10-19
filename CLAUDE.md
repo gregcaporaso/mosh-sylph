@@ -21,6 +21,7 @@ It was split out of q2-confluence on 2026-10-16: thin wrappers of sylph and sylp
  * The local environment is still the undated `mosh-sylph-dev`, created 2026-10-16 before the dated convention (osx-arm64; rachis 2026.10.0.dev0+8, sylph 1.0.0, sylph-tax 1.9.2, plugin editable); flake8, q2lint, the full suite (42 tests + 13 subtests, 11 s) and `rachis info` / `rachis sylph --help` all pass there. Before it existed the code was developed in `qiime2-dev-2026-10-15` with sylph and sylph-tax unpacked from their bioconda packages into `$TMPDIR`; that stand-in is gone.
  * Before every commit: `flake8`, `q2lint`, `python -m pytest -q` (under a minute), and render `rachis sylph <action> --help` for every changed signature.
  * rachis does not accept `Choices` on `Int`; `k` uses `Int % (Range(21, 22) | Range(31, 32))`.
+ * Actions take and return the single-file formats (`SylphDatabaseFormat`, `SylphProfileFormat`, ...) and address them as `str(fmt)`; the framework converts to and from the `SingleFileDirectoryFormat`s, so no action or test names a member file (`profile.tsv`). Only the multi-file formats (sketches, taxprof profiles) are handled as directories (developer, 2026-10-19).
  * sylph writes a header-only TSV when nothing is detected; sylph-tax taxprof writes no file for such a sample; sketches and profile/query/taxprof/merge outputs are byte-identical to direct runs on the same files, which is what the tests check.
 
 ## Status and ownership

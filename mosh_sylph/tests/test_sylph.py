@@ -22,10 +22,9 @@ from qiime2.plugin.testing import TestPluginBase
 from q2_types.per_sample_sequences import SingleLanePerSamplePairedEndFastqDirFmt
 
 from mosh_sylph import _examples as ex
-from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphDatabaseFormat,
-                                 SylphProfileDirFmt, SylphProfileFormat,
-                                 SylphQueryDirFmt, SylphQueryFormat,
-                                 SylphSketchesDirFmt, SylphSketchFormat)
+from mosh_sylph._formats import (SylphDatabaseFormat, SylphProfileFormat,
+                                 SylphQueryFormat, SylphSketchesDirFmt,
+                                 SylphSketchFormat)
 from mosh_sylph._sylph import GTDB_RELEASES, _database_url, fetch_database
 
 
@@ -39,8 +38,7 @@ class FetchDatabaseTests(TestPluginBase):
             database, = self.plugin.methods['fetch_database'](
                 release='232', base_url='file://' + host)
         self.assertEqual(str(database.type), 'SylphDatabase')
-        path = os.path.join(str(database.view(SylphDatabaseDirFmt)),
-                            'database.syl2db')
+        path = str(database.view(SylphDatabaseFormat))
         self.assertTrue(filecmp.cmp(path, source, shallow=False))
 
     def test_releases_in_numeric_order(self):
@@ -170,8 +168,7 @@ class _SearchTestBase(TestPluginBase):
         cls.database = ex._database_factory()
         cls.sketch_paths = list(
             cls.sketches.view(SylphSketchesDirFmt).sample_paths().values())
-        cls.database_path = os.path.join(
-            str(cls.database.view(SylphDatabaseDirFmt)), 'database.syl2db')
+        cls.database_path = str(cls.database.view(SylphDatabaseFormat))
 
     def _direct(self, command, *options, sketch_paths=None):
         """Output of `sylph <command>` run directly, as text."""
@@ -189,8 +186,7 @@ class ProfileTests(_SearchTestBase):
         result, = self.plugin.methods['profile'](
             self.sketches, self.database, threads=1, **kwargs)
         self.assertEqual(str(result.type), 'SylphProfile')
-        with open(os.path.join(str(result.view(SylphProfileDirFmt)),
-                               'profile.tsv')) as fh:
+        with open(str(result.view(SylphProfileFormat))) as fh:
             return fh.read()
 
     def test_same_as_sylph_profile(self):
@@ -249,8 +245,7 @@ class QueryTests(_SearchTestBase):
         result, = self.plugin.methods['query'](
             self.sketches, self.database, threads=1, **kwargs)
         self.assertEqual(str(result.type), 'SylphQuery')
-        with open(os.path.join(str(result.view(SylphQueryDirFmt)),
-                               'query.tsv')) as fh:
+        with open(str(result.view(SylphQueryFormat))) as fh:
             return fh.read()
 
     def test_same_as_sylph_query(self):

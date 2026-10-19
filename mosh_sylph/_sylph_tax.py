@@ -10,8 +10,8 @@
 
 import os
 
-from mosh_sylph._formats import (SylphMergedProfileDirFmt, SylphProfileDirFmt,
-                                 SylphTaxonomyDirFmt, SylphTaxProfilesDirFmt)
+from mosh_sylph._formats import (SylphMergedProfileFormat, SylphProfileFormat,
+                                 SylphTaxonomyFormat, SylphTaxProfilesDirFmt)
 from mosh_sylph._util import _download, _run
 
 # The taxonomies sylph-tax knows, as its identifier -> the URL of its metadata
@@ -64,20 +64,18 @@ def _taxonomy_url(taxonomy):
     return TAXONOMIES[taxonomy]
 
 
-def tax_download(taxonomy: str) -> SylphTaxonomyDirFmt:
-    # TODO: this is AI-generated code; human review pending
+def tax_download(taxonomy: str) -> SylphTaxonomyFormat:
     """The taxonomy metadata file that sylph-tax download fetches for one of
     its taxonomy identifiers (sylph-tax download fetches all of them)."""
-    fmt = SylphTaxonomyDirFmt()
-    _download(_taxonomy_url(taxonomy), os.path.join(str(fmt), 'taxonomy.tsv.gz'))
+    fmt = SylphTaxonomyFormat()
+    _download(_taxonomy_url(taxonomy), str(fmt))
     return fmt
 
 
-def taxprof(profile: SylphProfileDirFmt, sylph_taxonomy: SylphTaxonomyDirFmt
+def taxprof(profile: SylphProfileFormat, sylph_taxonomy: SylphTaxonomyFormat
             ) -> SylphTaxProfilesDirFmt:
-    # TODO: this is AI-generated code; human review pending
     """sylph-tax taxprof of a sylph profile with the given taxonomy."""
-    path = os.path.join(str(profile), 'profile.tsv')
+    path = str(profile)
     with open(path) as fh:
         fh.readline()
         if not fh.readline():
@@ -85,19 +83,19 @@ def taxprof(profile: SylphProfileDirFmt, sylph_taxonomy: SylphTaxonomyDirFmt
                              'so sylph-tax taxprof has nothing to annotate')
     result = SylphTaxProfilesDirFmt()
     _run(['sylph-tax', '--no-config', 'taxprof', path,
-          '-t', os.path.join(str(sylph_taxonomy), 'taxonomy.tsv.gz'),
+          '-t', str(sylph_taxonomy),
           '-o', str(result) + os.sep])
     return result
 
 
 def tax_merge(taxonomic_profiles: SylphTaxProfilesDirFmt,
-              column: str = 'relative_abundance') -> SylphMergedProfileDirFmt:
+              column: str = 'relative_abundance') -> SylphMergedProfileFormat:
     # TODO: this is AI-generated code; human review pending
     """sylph-tax merge of the per-sample profiles for one column."""
     paths = sorted(os.path.join(str(taxonomic_profiles), f)
                    for f in os.listdir(str(taxonomic_profiles))
                    if f.endswith('.sylphmpa'))
-    result = SylphMergedProfileDirFmt()
+    result = SylphMergedProfileFormat()
     _run(['sylph-tax', '--no-config', 'merge', *paths, '--column', column,
-          '-o', os.path.join(str(result), 'merged.tsv')])
+          '-o', str(result)])
     return result

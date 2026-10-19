@@ -14,8 +14,8 @@ import tempfile
 import pandas as pd
 from q2_types.per_sample_sequences import SingleLanePerSamplePairedEndFastqDirFmt
 
-from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphProfileDirFmt,
-                                 SylphQueryDirFmt, SylphSketchesDirFmt)
+from mosh_sylph._formats import (SylphDatabaseFormat, SylphProfileFormat,
+                                 SylphQueryFormat, SylphSketchesDirFmt)
 from mosh_sylph._util import _download, _run
 
 DEFAULT_BASE_URL = 'http://faust.compbio.cs.cmu.edu/sylph-stuff'
@@ -31,12 +31,11 @@ def _database_url(base_url, release):
 
 
 def fetch_database(release: str = GTDB_RELEASES[-1],
-                   base_url: str = DEFAULT_BASE_URL) -> SylphDatabaseDirFmt:
+                   base_url: str = DEFAULT_BASE_URL) -> SylphDatabaseFormat:
     # TODO: this is AI-generated code; human review pending
     """Download the sylph authors' pre-built GTDB database of a release."""
-    fmt = SylphDatabaseDirFmt()
-    _download(_database_url(base_url, release),
-              os.path.join(str(fmt), 'database.syl2db'))
+    fmt = SylphDatabaseFormat()
+    _download(_database_url(base_url, release), str(fmt))
     return fmt
 
 
@@ -73,39 +72,37 @@ def _search_options(threads, minimum_ani, min_number_kmers, min_contain,
             '--screen-ani', str(screen_ani)]
 
 
-def profile(sketches: SylphSketchesDirFmt, database: SylphDatabaseDirFmt,
+def profile(sketches: SylphSketchesDirFmt, database: SylphDatabaseFormat,
             threads: int = 3, minimum_ani: float = 95.0,
             min_number_kmers: int = 10, min_contain: int = 7,
             min_count_correct: float = 3.0, estimate_unknown: bool = False,
             read_seq_id: float = None, screen_ani: float = 85.0
-            ) -> SylphProfileDirFmt:
+            ) -> SylphProfileFormat:
     # TODO: this is AI-generated code; human review pending
     """sylph profile of every sketch against the database."""
-    result = SylphProfileDirFmt()
+    result = SylphProfileFormat()
     _run(['sylph', 'profile']
          + _search_options(threads, minimum_ani, min_number_kmers, min_contain,
                            min_count_correct, screen_ani)
          + (['--estimate-unknown'] if estimate_unknown else [])
          + (['--read-seq-id', str(read_seq_id)] if read_seq_id is not None
             else [])
-         + ['-d', os.path.join(str(database), 'database.syl2db'),
-            '-o', os.path.join(str(result), 'profile.tsv')]
+         + ['-d', str(database), '-o', str(result)]
          + list(sketches.sample_paths().values()))
     return result
 
 
-def query(sketches: SylphSketchesDirFmt, database: SylphDatabaseDirFmt,
+def query(sketches: SylphSketchesDirFmt, database: SylphDatabaseFormat,
           threads: int = 3, minimum_ani: float = 90.0,
           min_number_kmers: int = 10, min_contain: int = 7,
           min_count_correct: float = 3.0, screen_ani: float = 85.0
-          ) -> SylphQueryDirFmt:
+          ) -> SylphQueryFormat:
     # TODO: this is AI-generated code; human review pending
     """sylph query of every sketch against the database."""
-    result = SylphQueryDirFmt()
+    result = SylphQueryFormat()
     _run(['sylph', 'query']
          + _search_options(threads, minimum_ani, min_number_kmers, min_contain,
                            min_count_correct, screen_ani)
-         + ['-d', os.path.join(str(database), 'database.syl2db'),
-            '-o', os.path.join(str(result), 'query.tsv')]
+         + ['-d', str(database), '-o', str(result)]
          + list(sketches.sample_paths().values()))
     return result

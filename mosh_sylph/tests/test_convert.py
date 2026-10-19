@@ -21,7 +21,7 @@ from qiime2.plugin.testing import TestPluginBase
 from mosh_sylph import _examples as ex
 from mosh_sylph._convert import (_accession, _query_to_metadata, _read_sylphmpa,
                                  _tables)
-from mosh_sylph._formats import SylphProfileDirFmt, SylphQueryDirFmt
+from mosh_sylph._formats import SylphProfileFormat, SylphQueryFormat
 
 LINEAGE = ('d__Bacteria|p__Bacillota_A|c__Clostridia|o__Lachnospirales|'
            'f__Lachnospiraceae|g__Blautia')
@@ -173,8 +173,7 @@ class TaxprofToTablesTests(TestPluginBase):
         self.assertEqual(str(stats.type), 'ImmutableMetadata')
         rel, seq = rel.view(biom.Table), seq.view(biom.Table)
         stats = stats.view(qiime2.Metadata).to_dataframe()
-        with open(os.path.join(str(profile.view(SylphProfileDirFmt)),
-                               'profile.tsv')) as fh:
+        with open(str(profile.view(SylphProfileFormat))) as fh:
             direct = pd.read_csv(io.StringIO(fh.read()), sep='\t')
         direct['accession'] = direct['Genome_file'].map(_accession)
         self.assertEqual(list(rel.ids()), ex._SAMPLES)
@@ -284,8 +283,7 @@ class QueryToMetadataTests(TestPluginBase):
                                                        ex._taxonomy_factory())
         self.assertEqual(str(md.type), 'ImmutableMetadata')
         df = md.view(qiime2.Metadata).to_dataframe()
-        with open(os.path.join(str(query.view(SylphQueryDirFmt)),
-                               'query.tsv')) as fh:
+        with open(str(query.view(SylphQueryFormat))) as fh:
             direct = pd.read_csv(io.StringIO(fh.read()), sep='\t', dtype=str)
         self.assertEqual(len(df), len(direct))
         for _, r in direct.iterrows():

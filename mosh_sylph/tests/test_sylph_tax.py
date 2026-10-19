@@ -18,9 +18,8 @@ from qiime2.plugin import ValidationError
 from qiime2.plugin.testing import TestPluginBase
 
 from mosh_sylph import _examples as ex
-from mosh_sylph._formats import (SylphMergedProfileDirFmt, SylphMpaFormat,
-                                 SylphProfileDirFmt,
-                                 SylphTaxonomyDirFmt, SylphTaxonomyFormat,
+from mosh_sylph._formats import (SylphMergedProfileFormat, SylphMpaFormat,
+                                 SylphProfileFormat, SylphTaxonomyFormat,
                                  SylphTaxProfilesDirFmt)
 from mosh_sylph._sylph_tax import MERGE_COLUMNS, TAXONOMIES, _taxonomy_url
 
@@ -35,8 +34,7 @@ class TaxDownloadTests(TestPluginBase):
             taxonomy, = self.plugin.methods['tax_download'](taxonomy='GTDB_r232')
         url.assert_called_once_with('GTDB_r232')
         self.assertEqual(str(taxonomy.type), 'SylphTaxonomy')
-        path = os.path.join(str(taxonomy.view(SylphTaxonomyDirFmt)),
-                            'taxonomy.tsv.gz')
+        path = str(taxonomy.view(SylphTaxonomyFormat))
         self.assertTrue(filecmp.cmp(path, source, shallow=False))
 
     def test_table_matches_sylph_tax(self):
@@ -108,10 +106,8 @@ class TaxprofTests(TestPluginBase):
         super().setUpClass()
         cls.profile = ex._profile_factory()
         cls.taxonomy = ex._taxonomy_factory()
-        cls.profile_path = os.path.join(
-            str(cls.profile.view(SylphProfileDirFmt)), 'profile.tsv')
-        cls.taxonomy_path = os.path.join(
-            str(cls.taxonomy.view(SylphTaxonomyDirFmt)), 'taxonomy.tsv.gz')
+        cls.profile_path = str(cls.profile.view(SylphProfileFormat))
+        cls.taxonomy_path = str(cls.taxonomy.view(SylphTaxonomyFormat))
 
     def test_same_as_sylph_tax_taxprof(self):
         result, = self.plugin.methods['taxprof'](self.profile, self.taxonomy)
@@ -155,8 +151,7 @@ class TaxMergeTests(TestPluginBase):
                 merged, = self.plugin.methods['tax_merge'](
                     self.profiles, column=column)
                 self.assertEqual(str(merged.type), 'SylphMergedProfile')
-                path = os.path.join(str(merged.view(SylphMergedProfileDirFmt)),
-                                    'merged.tsv')
+                path = str(merged.view(SylphMergedProfileFormat))
                 with tempfile.TemporaryDirectory() as d:
                     out = os.path.join(d, 'merged.tsv')
                     _sylph_tax('merge', *self.paths, '--column', column,

@@ -26,8 +26,8 @@ import numpy as np
 import pandas as pd
 import qiime2
 
-from mosh_sylph._formats import (SylphQueryDirFmt, SylphSketchesDirFmt,
-                                 SylphTaxonomyDirFmt, SylphTaxProfilesDirFmt)
+from mosh_sylph._formats import (SylphQueryFormat, SylphSketchesDirFmt,
+                                 SylphTaxonomyFormat, SylphTaxProfilesDirFmt)
 
 RANKS = ('d__', 'p__', 'c__', 'o__', 'f__', 'g__', 's__')
 
@@ -138,8 +138,8 @@ def taxprof_to_tables(taxonomic_profiles: SylphTaxProfilesDirFmt,
 def _read_taxonomy(sylph_taxonomy):
     # TODO: this is AI-generated code; human review pending
     """{accession: taxonomy string} from sylph-tax taxonomy metadata."""
-    path = os.path.join(str(sylph_taxonomy), 'taxonomy.tsv.gz')
-    df = pd.read_csv(path, sep='\t', header=None, usecols=[0, 1], dtype=str,
+    df = pd.read_csv(str(sylph_taxonomy), sep='\t', header=None,
+                     usecols=[0, 1], dtype=str,
                      quoting=csv.QUOTE_NONE)
     return df.set_index(0)[1].to_dict()
 
@@ -180,10 +180,10 @@ def _query_to_metadata(path, taxonomy, targets=None):
     return qiime2.Metadata(out)
 
 
-def query_to_metadata(query: SylphQueryDirFmt,
-                      sylph_taxonomy: SylphTaxonomyDirFmt,
+def query_to_metadata(query: SylphQueryFormat,
+                      sylph_taxonomy: SylphTaxonomyFormat,
                       targets: list = None) -> qiime2.Metadata:
     # TODO: this is AI-generated code; human review pending
     """sylph query output with the taxonomy joined, as metadata."""
-    return _query_to_metadata(os.path.join(str(query), 'query.tsv'),
-                              _read_taxonomy(sylph_taxonomy), targets)
+    return _query_to_metadata(str(query), _read_taxonomy(sylph_taxonomy),
+                              targets)
