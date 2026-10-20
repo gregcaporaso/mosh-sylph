@@ -14,42 +14,23 @@ from mosh_sylph._formats import (SylphMergedProfileFormat, SylphProfileFormat,
                                  SylphTaxonomyFormat, SylphTaxProfilesDirFmt)
 from mosh_sylph._util import _download, _run
 
-# The taxonomies sylph-tax knows, as its identifier -> the URL of its metadata
-# file. This is a copy of sylph-tax's own table (sylph_tax/metadata_files.py:
-# __name_to_metadata_file__ maps identifier -> file name, and
-# __metadata_file_urls__ lists the URLs ending in those file names), kept
-# here because sylph-tax exposes it only through those dunder names and
-# `sylph-tax download` fetches every file at once. Copied from sylph-tax 1.9.2.
-# When the pinned sylph-tax changes (environment-files/*-extras.yml), update
-# this table to match: tests/test_sylph_tax.py compares it with the installed
-# sylph-tax's table and fails on any difference.
+# The taxonomies tax-download offers, as sylph-tax's identifier -> the URL of
+# its metadata file: the GTDB releases fetch-database can download and the
+# GlobDB releases a user can import after converting GlobDB's single-stage
+# database (README, "Types and formats"). Each row is copied from sylph-tax's
+# own table (sylph_tax/metadata_files.py: __name_to_metadata_file__ maps
+# identifier -> file name, __metadata_file_urls__ lists the URLs ending in
+# those file names), which sylph-tax exposes only through those dunder names;
+# `sylph-tax download` fetches every file at once. Rows copied from sylph-tax
+# 1.9.2. To add a taxonomy, copy its row from there; when the pinned sylph-tax
+# changes (environment-files/*-extras.yml), tests/test_sylph_tax.py compares
+# every row here with the installed sylph-tax's table and fails on a
+# difference.
 TAXONOMIES = {
-    'FungiRefSeq-latest':
-        'https://zenodo.org/records/17330476/files/'
-        'fungi_refseq_2025-10-11_metadata.tsv.gz',
-    'FungiRefSeq-2024-07-25':
-        'https://zenodo.org/records/14320496/files/'
-        'fungi_refseq_2024-07-25_metadata.tsv.gz',
-    'GTDB_r214':
-        'https://zenodo.org/records/14320496/files/gtdb_r214_metadata.tsv.gz',
-    'GTDB_r220':
-        'https://zenodo.org/records/14320496/files/gtdb_r220_metadata.tsv.gz',
     'GTDB_r226':
         'https://zenodo.org/records/15314244/files/gtdb_r226_metadata.tsv.gz',
     'GTDB_r232':
         'https://zenodo.org/records/19646381/files/gtdb_r232_metadata.tsv.gz',
-    'IMGVR_4.1':
-        'https://zenodo.org/records/14320496/files/IMGVR_4.1_metadata.tsv.gz',
-    'UHGV_default':
-        'https://zenodo.org/records/15670321/files/uhgv_default_metadata.tsv.gz',
-    'UHGV_ictv':
-        'https://zenodo.org/records/15670321/files/uhgv_ictv_metadata.tsv.gz',
-    'OceanDNA':
-        'https://zenodo.org/records/14320496/files/ocean_dna_metadata.tsv.gz',
-    'SoilSMAG':
-        'https://zenodo.org/records/14320496/files/soil_smag_metadata.tsv.gz',
-    'TaraEukaryoticSMAG':
-        'https://zenodo.org/records/14320496/files/tara_SMAGs_metadata.tsv.gz',
     'GlobDB_r226':
         'https://zenodo.org/records/16322879/files/globdb_r226_sylph_tax.tsv.gz',
     'GlobDB_r232':

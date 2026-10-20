@@ -154,9 +154,10 @@ plugin.methods.register_function(
     parameters={'taxonomy': Str % Choices(list(TAXONOMIES))},
     outputs=[('sylph_taxonomy', SylphTaxonomy)],
     parameter_descriptions={
-        'taxonomy': 'sylph-tax\'s identifier of the taxonomy; GTDB_r<release> '
-                    'matches the database fetch-database downloads for that '
-                    'release.'},
+        'taxonomy': 'sylph-tax\'s identifier of the taxonomy: GTDB_r<release> '
+                    'for the database fetch-database downloads for that '
+                    'release, GlobDB_r<release> for an imported GlobDB '
+                    'database.'},
     output_descriptions={
         'sylph_taxonomy': 'The taxonomy metadata file, as sylph-tax download '
                           'stores it.'},

@@ -38,20 +38,20 @@ class TaxDownloadTests(TestPluginBase):
         self.assertTrue(filecmp.cmp(path, source, shallow=False))
 
     def test_table_matches_sylph_tax(self):
-        # TAXONOMIES in _sylph_tax.py is a copy of the installed sylph-tax's
-        # table; this is the one place the plugin reads sylph-tax's dunder
-        # names. When this fails after a sylph-tax upgrade, rebuild the
-        # plugin's table from the two names below (identifier -> file name,
-        # and the URL ending in that file name), in sylph-tax's order.
+        # Every row of TAXONOMIES in _sylph_tax.py is copied from the
+        # installed sylph-tax's table; this is the one place the plugin reads
+        # sylph-tax's dunder names. When this fails after a sylph-tax
+        # upgrade, re-copy the failing rows from the two names below
+        # (identifier -> file name, and the URL ending in that file name).
         from sylph_tax.metadata_files import (__metadata_file_urls__,
                                               __name_to_metadata_file__)
-        expected = {}
-        for identifier, file_name in __name_to_metadata_file__.items():
-            url, = [u for u in __metadata_file_urls__
-                    if u.endswith('/' + file_name)]
-            expected[identifier] = url
-        self.assertEqual(TAXONOMIES, expected)
-        self.assertEqual(list(TAXONOMIES), list(expected))
+        for identifier, url in TAXONOMIES.items():
+            file_name = __name_to_metadata_file__[identifier]
+            self.assertEqual(
+                [url], [u for u in __metadata_file_urls__
+                        if u.endswith('/' + file_name)], identifier)
+        self.assertEqual(list(TAXONOMIES),
+                         ['GTDB_r226', 'GTDB_r232', 'GlobDB_r226', 'GlobDB_r232'])
 
     def test_urls_are_sylph_tax_urls(self):
         self.assertIn('GTDB_r232', TAXONOMIES)

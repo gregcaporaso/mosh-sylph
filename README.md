@@ -11,7 +11,7 @@ The tutorial that uses it, integrating a sylph metagenome profile with a 16S pro
 | Action | Wraps | Inputs | Parameters | Outputs |
 |---|---|---|---|---|
 | `fetch-database` | download of the authors' pre-built GTDB database | | `release` (the newest listed by default), `base_url` (default `http://faust.compbio.cs.cmu.edu/sylph-stuff`) | `database`: `SylphDatabase` |
-| `tax-download` | `sylph-tax download`, one taxonomy | | `taxonomy` (sylph-tax identifiers, e.g. `GTDB_r232`) | `sylph_taxonomy`: `SylphTaxonomy` |
+| `tax-download` | `sylph-tax download`, one taxonomy | | `taxonomy` (sylph-tax's identifiers for the GTDB and GlobDB releases: `GTDB_r226`, `GTDB_r232`, `GlobDB_r226`, `GlobDB_r232`) | `sylph_taxonomy`: `SylphTaxonomy` |
 | `sketch` | `sylph sketch` (paired-end reads) | `reads`: `SampleData[PairedEndSequencesWithQuality]` | `threads`, `c` (200), `k` (31; 21 or 31), `fpr` | `sketches`: `SylphSketches` |
 | `profile` | `sylph profile` | `sketches`: `SylphSketches`, `database`: `SylphDatabase` | `threads`, `minimum_ani` (95), `min_number_kmers`, `min_contain`, `min_count_correct`, `estimate_unknown` (off, as in sylph), `read_seq_id`, `screen_ani` | `profile`: `SylphProfile` |
 | `query` | `sylph query` | `sketches`, `database` | as `profile`, `minimum_ani` 90, without `estimate_unknown` and `read_seq_id` | `query`: `SylphQuery` |
@@ -59,6 +59,21 @@ rachis tools import \
 ```
 
 Only two-stage databases (`.syl2db`) are accepted; a single-stage `.syldb` converts with `sylph convert-db-two-screen`.
+`fetch-database` downloads the sylph authors' two-stage GTDB databases; [GlobDB](https://globdb.org) publishes its own sylph databases for r226 and r232, but only single-stage ones so far, so `fetch-database` will offer them once a two-stage build exists.
+Until then, download the GlobDB database (`globdb_r<release>_sylph_c200.syldb` under `https://fileshare.lisc.univie.ac.at/globdb/globdb_r<release>/taxonomic_profiling/`, with md5 sums alongside; 35 to 40 GB), convert it, and import the result; `tax-download` already offers the matching `GlobDB_r<release>` taxonomy:
+
+```shell
+sylph convert-db-two-screen \
+  -t 8 \
+  -o globdb-r232 \
+  globdb_r232_sylph_c200.syldb
+
+rachis tools import \
+  --type SylphDatabase \
+  --input-format SylphDatabaseFormat \
+  --input-path globdb-r232.syl2db \
+  --output-path sylph-globdb-r232.qza
+```
 A sketch file has no header to recognize it by, so importing one runs `sylph inspect` on it (the full validation level); an action's own sketches are only checked for emptiness.
 
 ## Typical use
