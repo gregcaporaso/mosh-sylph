@@ -17,6 +17,7 @@ The tutorial that uses it, integrating a sylph metagenome profile with a 16S pro
 | `query` | `sylph query` | `sketches`, `database` | as `profile`, `minimum_ani` 90, without `estimate_unknown` and `read_seq_id` | `query`: `SylphQuery` |
 | `taxprof` | `sylph-tax taxprof` | `profile`: `SylphProfile`, `sylph_taxonomy`: `SylphTaxonomy` | | `taxonomic_profiles`: `SylphTaxProfiles` |
 | `tax-merge` | `sylph-tax merge` | `taxonomic_profiles`: `SylphTaxProfiles` | `column` (`relative_abundance`, `sequence_abundance`, `ANI`, `Coverage`) | `merged_profile`: `SylphMergedProfile` |
+| `profile-to-tables` | conversion | `profile`: `SylphProfile`, `sketches`: `SylphSketches` | `gtdb_ids` (on: `RS_GCF_...` / `GB_GCA_...`, GTDB's genome IDs; off: the NCBI accession) | `taxonomic_abundance`, `sequence_abundance`: `FeatureTable[RelativeFrequency]`; `stats`: `ImmutableMetadata` (genomes, median-ani, unknown-share) |
 | `taxprof-to-tables` | conversion | `taxonomic_profiles`: `SylphTaxProfiles`, `sketches`: `SylphSketches` | | `taxonomic_abundance`, `sequence_abundance`: `FeatureTable[RelativeFrequency]`; `taxonomy`: `FeatureData[Taxonomy]`; `stats`: `ImmutableMetadata` |
 | `query-to-metadata` | conversion | `query`: `SylphQuery`, `sylph_taxonomy`: `SylphTaxonomy` | `targets` (`List[Str]`, optional) | `query_metadata`: `ImmutableMetadata` |
 
@@ -83,10 +84,6 @@ rachis sylph fetch-database \
   --p-release 232 \
   --o-database sylph-gtdb-r232.qza
 
-rachis sylph tax-download \
-  --p-taxonomy GTDB_r232 \
-  --o-sylph-taxonomy sylph-taxonomy-gtdb-r232.qza
-
 rachis sylph sketch \
   --i-reads reads.qza \
   --p-threads 8 \
@@ -98,6 +95,22 @@ rachis sylph profile \
   --p-estimate-unknown \
   --p-threads 8 \
   --o-profile sylph-profile.qza
+
+rachis sylph profile-to-tables \
+  --i-profile sylph-profile.qza \
+  --i-sketches sketches.qza \
+  --o-taxonomic-abundance sylph-taxonomic-abundance.qza \
+  --o-sequence-abundance sylph-sequence-abundance.qza \
+  --o-stats sylph-stats.qza
+```
+
+The tables are keyed by GTDB's genome IDs, so GTDB's own taxonomy file (`bac120_taxonomy_r232.tsv.gz`, imported as `FeatureData[Taxonomy]` with `--input-format HeaderlessTSVTaxonomyFormat`) is their taxonomy and GTDB's tree their phylogeny; the [tutorial](https://github.com/gregcaporaso/thermo-hec-tutorial) does both.
+The sylph-tax path (`tax-download`, `taxprof`, `taxprof-to-tables`) gives the same tables with the taxonomy attached and NCBI accessions as IDs:
+
+```shell
+rachis sylph tax-download \
+  --p-taxonomy GTDB_r232 \
+  --o-sylph-taxonomy sylph-taxonomy-gtdb-r232.qza
 
 rachis sylph taxprof \
   --i-profile sylph-profile.qza \
@@ -113,7 +126,7 @@ rachis sylph taxprof-to-tables \
   --o-stats sylph-stats.qza
 ```
 
-The database is 19 GB; the [tutorial](https://github.com/gregcaporaso/thermo-hec-tutorial) shows how to keep it, its taxonomy and the sketches in an artifact cache.
+The database is 19 GB; the tutorial shows how to keep it and the sketches in an artifact cache.
 
 ## Development installation
 

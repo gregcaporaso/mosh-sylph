@@ -159,6 +159,19 @@ def _sketches_factory():
     return sketches
 
 
+def _profile_to_tables_example(use):
+    # TODO: this is AI-generated code; human review pending
+    profile = use.init_artifact('sylph-profile', _profile_factory)
+    sketches = use.init_artifact('sketches', _sketches_factory)
+    use.action(
+        use.UsageAction('sylph', 'profile_to_tables'),
+        use.UsageInputs(profile=profile, sketches=sketches),
+        use.UsageOutputNames(taxonomic_abundance='sylph-taxonomic-abundance',
+                             sequence_abundance='sylph-sequence-abundance',
+                             stats='sylph-stats'),
+    )
+
+
 def _taxprof_to_tables_example(use):
     # TODO: this is AI-generated code; human review pending
     profiles = use.init_artifact('sylph-taxprof', _taxprof_factory)

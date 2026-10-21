@@ -19,8 +19,9 @@ import qiime2
 from qiime2.plugin.testing import TestPluginBase
 
 from mosh_sylph import _examples as ex
-from mosh_sylph._convert import (_accession, _query_to_metadata, _read_sylphmpa,
-                                 _tables)
+from mosh_sylph._convert import (_accession, _build_tables, _gtdb_id,
+                                 _query_to_metadata, _read_profile,
+                                 _read_sylphmpa, _tables)
 from mosh_sylph._formats import SylphProfileFormat, SylphQueryFormat
 
 LINEAGE = ('d__Bacteria|p__Bacillota_A|c__Clostridia|o__Lachnospirales|'
@@ -44,7 +45,6 @@ def _sylphmpa(sample, strains):
 class AccessionTests(unittest.TestCase):
 
     def test_forms(self):
-        # TODO: this is AI-generated code; human review pending
         self.assertEqual(_accession('GCF_000227485.1_ASM22748v1_genomic.fna.gz'),
                          'GCF_000227485.1')
         self.assertEqual(_accession('/db/GCA_01.2_genomic.fna'), 'GCA_01.2')
@@ -154,6 +154,146 @@ class SylphmpaParserTests(unittest.TestCase):
         p = self._write('x.tsv', 'a\tb\n')
         with self.assertRaisesRegex(ValueError, 'not a .sylphmpa'):
             _read_sylphmpa(p)
+
+
+PROFILE_HEADER = ('Sample_file\tGenome_file\tTaxonomic_abundance\t'
+                  'Sequence_abundance\tAdjusted_ANI\tTrue_cov\tContig_name\n')
+
+
+def _profile(rows):
+    # TODO: this is AI-generated code; human review pending
+    """rows: [(sample, genome file, rel, seq, ani, contig name)] -> text."""
+    return PROFILE_HEADER + ''.join(
+        f'{s}\t{g}\t{rel}\t{seq}\t{ani}\t0.1\t{contig}\n'
+        for s, g, rel, seq, ani, contig in rows)
+
+
+class GtdbIdTests(unittest.TestCase):
+
+    def test_forms(self):
+        # TODO: this is AI-generated code; human review pending
+        self.assertEqual(_gtdb_id('GCF_000227485.1'), 'RS_GCF_000227485.1')
+        self.assertEqual(_gtdb_id('GCA_000154345.1'), 'GB_GCA_000154345.1')
+        with self.assertRaisesRegex(ValueError, 'no GTDB form'):
+            _gtdb_id('mygenome')
+
+
+class ProfileParserTests(unittest.TestCase):
+
+    def setUp(self):
+        # TODO: this is AI-generated code; human review pending
+        self.tmp = tempfile.TemporaryDirectory()
+        self.path = os.path.join(self.tmp.name, 'profile.tsv')
+        with open(self.path, 'w') as fh:
+            fh.write(_profile([
+                ('s1', 'genomes/GCF_1.1_genomic.fna.gz', 60.0, 70.0, 99.1,
+                 'NC_1 a contig\twith a tab in its name'),
+                ('s1', 'genomes/GCA_2.1_genomic.fna.gz', 40.0, 10.0, 97.3, 'c2'),
+                ('s2', 'genomes/GCA_2.1_genomic.fna.gz', 100.0, 50.0, 98.0, 'c2')]))
+
+    def tearDown(self):
+        # TODO: this is AI-generated code; human review pending
+        self.tmp.cleanup()
+
+    def test_read(self):
+        # TODO: this is AI-generated code; human review pending
+        per_sample = _read_profile(self.path)
+        self.assertEqual(sorted(per_sample), ['s1', 's2'])
+        self.assertEqual(list(per_sample['s1'].index), ['GCF_1.1', 'GCA_2.1'])
+        self.assertEqual(per_sample['s1'].loc['GCF_1.1', 'ani'], 99.1)
+        self.assertEqual(per_sample['s2'].loc['GCA_2.1', 'seq'], 50.0)
+
+    def test_tables_match_the_sylphmpa_path(self):
+        # TODO: this is AI-generated code; human review pending
+        rel, seq, stats = _build_tables(_read_profile(self.path),
+                                        ['s1', 's2', 's3'])
+        self.assertEqual(list(rel.ids()), ['s1', 's2', 's3'])
+        self.assertEqual(list(rel.ids(axis='observation')), ['GCA_2.1', 'GCF_1.1'])
+        self.assertAlmostEqual(rel.get_value_by_ids('GCF_1.1', 's1'), 0.6)
+        self.assertAlmostEqual(seq.get_value_by_ids('GCF_1.1', 's1'), 0.875)
+        self.assertAlmostEqual(seq.get_value_by_ids('GCA_2.1', 's2'), 1.0)
+        self.assertEqual(list(stats.columns),
+                         ['genomes', 'median-ani', 'unknown-share'])
+        self.assertEqual(stats.loc['s1', 'genomes'], 2)
+        self.assertAlmostEqual(stats.loc['s1', 'median-ani'], 98.2)
+        self.assertAlmostEqual(stats.loc['s1', 'unknown-share'], 0.2)
+        # s3: no detection, all-zero column, unknown share 1
+        self.assertEqual(rel.data('s3').sum(), 0.0)
+        self.assertEqual(stats.loc['s3', 'genomes'], 0)
+        self.assertEqual(stats.loc['s3', 'unknown-share'], 1.0)
+
+    def test_genome_twice(self):
+        # TODO: this is AI-generated code; human review pending
+        with open(self.path, 'a') as fh:
+            fh.write(_profile([('s2', 'GCA_2.1_genomic.fna.gz', 1, 1, 99, 'c')])
+                     .split('\n', 1)[1])
+        with self.assertRaisesRegex(ValueError, 'GCA_2.1 appears twice in sample s2'):
+            _read_profile(self.path)
+
+    def test_profile_without_sketch(self):
+        # TODO: this is AI-generated code; human review pending
+        with self.assertRaisesRegex(ValueError, 's2 has a profile but no sketch'):
+            _build_tables(_read_profile(self.path), ['s1'])
+
+
+class ProfileToTablesTests(TestPluginBase):
+    package = 'mosh_sylph.tests'
+
+    def test_fixture_against_sylph_profile(self):
+        # TODO: this is AI-generated code; human review pending
+        sketches = ex._sketches_factory()
+        profile, = self.plugin.methods['profile'](
+            sketches, ex._database_factory(), threads=1, estimate_unknown=True)
+        rel, seq, stats = self.plugin.methods['profile_to_tables'](profile,
+                                                                   sketches)
+        self.assertEqual(str(rel.type), 'FeatureTable[RelativeFrequency]')
+        self.assertEqual(str(stats.type), 'ImmutableMetadata')
+        rel, seq = rel.view(biom.Table), seq.view(biom.Table)
+        stats = stats.view(qiime2.Metadata).to_dataframe()
+        with open(str(profile.view(SylphProfileFormat))) as fh:
+            direct = pd.read_csv(io.StringIO(fh.read()), sep='\t')
+        direct['gtdb-id'] = direct['Genome_file'].map(_accession).map(_gtdb_id)
+        self.assertEqual(list(rel.ids()), ex._SAMPLES)
+        self.assertEqual(sorted(rel.ids(axis='observation')),
+                         sorted(direct['gtdb-id'].unique()))
+        self.assertTrue(all(i.startswith('RS_GCF_')
+                            for i in rel.ids(axis='observation')))
+        for sample, rows in direct.groupby('Sample_file'):
+            unknown = 1 - rows['Sequence_abundance'].sum() / 100
+            self.assertAlmostEqual(stats.loc[sample, 'unknown-share'], unknown,
+                                   places=5)
+            for _, r in rows.iterrows():
+                self.assertAlmostEqual(
+                    rel.get_value_by_ids(r['gtdb-id'], sample),
+                    r['Taxonomic_abundance'] / 100, places=5)
+                self.assertAlmostEqual(
+                    seq.get_value_by_ids(r['gtdb-id'], sample),
+                    r['Sequence_abundance'] / rows['Sequence_abundance'].sum(),
+                    places=5)
+        self.assertEqual(stats.loc['73F84', 'genomes'], 0)
+        self.assertEqual(stats.loc['73F84', 'unknown-share'], 1.0)
+        self.assertEqual(stats.loc['DB47D', 'genomes'], 2)
+        # the same tables as the sylph-tax path, apart from the ID form
+        profiles, = self.plugin.methods['taxprof'](profile, ex._taxonomy_factory())
+        rel_tax, _, _, stats_tax = self.plugin.methods['taxprof_to_tables'](
+            profiles, sketches)
+        rel_tax = rel_tax.view(biom.Table)
+        self.assertEqual([_gtdb_id(i) for i in rel_tax.ids(axis='observation')],
+                         list(rel.ids(axis='observation')))
+        self.assertTrue(np.allclose(rel_tax.matrix_data.toarray(),
+                                    rel.matrix_data.toarray()))
+        stats_tax = stats_tax.view(qiime2.Metadata).to_dataframe()
+        pd.testing.assert_frame_equal(stats_tax.drop(columns='genera'), stats)
+
+    def test_ncbi_ids(self):
+        # TODO: this is AI-generated code; human review pending
+        sketches = ex._sketches_factory()
+        profile, = self.plugin.methods['profile'](
+            sketches, ex._database_factory(), threads=1)
+        rel, _, _ = self.plugin.methods['profile_to_tables'](profile, sketches,
+                                                             gtdb_ids=False)
+        self.assertTrue(all(i.startswith('GCF_')
+                            for i in rel.view(biom.Table).ids(axis='observation')))
 
 
 class TaxprofToTablesTests(TestPluginBase):

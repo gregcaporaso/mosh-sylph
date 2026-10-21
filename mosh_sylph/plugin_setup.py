@@ -16,11 +16,13 @@ from q2_types.sample_data import SampleData
 
 from mosh_sylph import __version__
 from mosh_sylph._examples import (_fetch_database_example, _profile_example,
+                                  _profile_to_tables_example,
                                   _query_example, _query_to_metadata_example,
                                   _sketch_example,
                                   _tax_download_example, _tax_merge_example,
                                   _taxprof_example, _taxprof_to_tables_example)
-from mosh_sylph._convert import query_to_metadata, taxprof_to_tables
+from mosh_sylph._convert import (profile_to_tables, query_to_metadata,
+                                 taxprof_to_tables)
 from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphDatabaseFormat,
                                  SylphMergedProfileDirFmt,
                                  SylphMergedProfileFormat,
@@ -308,6 +310,48 @@ plugin.methods.register_function(
                  'by side.' + _EXPERIMENTAL),
     citations=[citations['Shaw-Yu-2025']],
     examples={'tax_merge_relative_abundance': _tax_merge_example},
+)
+
+plugin.methods.register_function(
+    function=profile_to_tables,
+    inputs={'profile': SylphProfile, 'sketches': SylphSketches},
+    parameters={'gtdb_ids': Bool},
+    outputs=[('taxonomic_abundance', FeatureTable[RelativeFrequency]),
+             ('sequence_abundance', FeatureTable[RelativeFrequency]),
+             ('stats', ImmutableMetadata)],
+    input_descriptions={
+        'profile': 'A sylph profile result.',
+        'sketches': 'The sketches that were profiled: their sample IDs are '
+                    'the table\'s samples, so a sample in which sylph '
+                    'detected nothing gets an all-zero column.'},
+    parameter_descriptions={
+        'gtdb_ids': 'Name the genomes as GTDB does (RS_GCF_... for RefSeq, '
+                    'GB_GCA_... for GenBank), the IDs of GTDB\'s taxonomy '
+                    'files and trees; off, the NCBI accession parsed from the '
+                    'genome file name (GCF_000023865.1), or the file name '
+                    'without its extension for a non-NCBI genome.'},
+    output_descriptions={
+        'taxonomic_abundance': 'Genome-size-corrected abundance of each '
+                               'genome (sylph\'s Taxonomic_abundance), as '
+                               'proportions summing to 1 per sample with a '
+                               'detection.',
+        'sequence_abundance': 'Share of reads assigned to each genome '
+                              '(sylph\'s Sequence_abundance), renormalized '
+                              'to sum to 1 over the detected genomes.',
+        'stats': 'Per sample: genomes detected, median ANI of the detected '
+                 'genomes, and unknown-share, the share of reads not '
+                 'assigned to any database genome (meaningful only for a '
+                 'profile made with estimate-unknown; 0 otherwise, 1 when '
+                 'nothing was detected).'},
+    name='Feature tables from a sylph profile',
+    description=(
+        'Converts sylph profile output into genome-keyed feature tables and '
+        'per-sample statistics, with no taxonomy step: the names in the '
+        'tables are the genome IDs, by default in GTDB\'s form, so a GTDB '
+        'taxonomy file imported as FeatureData[Taxonomy] and the GTDB tree '
+        'serve as the tables\' taxonomy and phylogeny.' + _EXPERIMENTAL),
+    citations=[citations['Shaw-Yu-2025']],
+    examples={'profile_to_tables': _profile_to_tables_example},
 )
 
 plugin.methods.register_function(
