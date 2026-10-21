@@ -1,5 +1,5 @@
 # What mosh-sylph needs on top of the QIIME 2 "tiny" distribution's development
-# environment: sylph and sylph-tax, and the test and lint tools. The base
+# environment: sylph, and the test and lint tools. The base
 # environment comes from the distribution's dev/latest/passed environment file,
 # as in https://develop.qiime2.org/en/stable/plugins/how-to-guides/set-up-development-environment.html;
 # this file is applied to it with `conda env update` (README, "Development
@@ -11,7 +11,6 @@ channels:
 - bioconda
 dependencies:
   - sylph=1.0.0
-  - sylph-tax=1.9.2
   - pytest
   - flake8
   - pip

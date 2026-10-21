@@ -1,7 +1,7 @@
 # Test fixture
 
-Small real data for comparing every action with a direct sylph or sylph-tax run; the usage examples run on it too.
-Built on 2026-10-16 with sylph 1.0.0 and sylph-tax 1.9.2.
+Small real data for comparing every action with a direct sylph run; the usage examples run on it too.
+Built on 2026-10-16 with sylph 1.0.0.
 
 ## `fixture.syl2db`
 
@@ -21,10 +21,6 @@ done
 sylph sketch -t 3 -g genomes/*.fna.gz -o fixture            # c=200, k=31: the authors' settings
 sylph convert-db-two-screen -t 3 -o fixture fixture.syldb
 ```
-
-## `taxonomy.tsv.gz`
-
-Five rows of sylph-tax's GTDB r232 taxonomy metadata in its format (accession, tab, taxonomy string): the three database genomes and two others, taken from the tutorial's `taxprof` output for its samples (`.sylphmpa` profiles against the r232 database).
 
 ## `reads/`
 

@@ -3,7 +3,7 @@ name = "mosh-sylph"
 authors = [
     { name = "Greg Caporaso" }
 ]
-description = "Thin wrappers of the sylph metagenome profiler and sylph-tax."
+description = "Thin wrappers of the sylph metagenome profiler."
 readme = {file = "README.md", content-type = "text/markdown"}
 license = {file = "LICENSE"}
 dynamic = ["version"]

@@ -18,26 +18,16 @@ from mosh_sylph import __version__
 from mosh_sylph._examples import (_fetch_database_example, _profile_example,
                                   _profile_to_tables_example,
                                   _query_example, _query_to_metadata_example,
-                                  _sketch_example,
-                                  _tax_download_example, _tax_merge_example,
-                                  _taxprof_example, _taxprof_to_tables_example)
-from mosh_sylph._convert import (profile_to_tables, query_to_metadata,
-                                 taxprof_to_tables)
+                                  _sketch_example)
+from mosh_sylph._convert import profile_to_tables, query_to_metadata
 from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphDatabaseFormat,
-                                 SylphMergedProfileDirFmt,
-                                 SylphMergedProfileFormat,
                                  SylphProfileDirFmt, SylphProfileFormat,
                                  SylphQueryDirFmt, SylphQueryFormat,
-                                 SylphSketchesDirFmt, SylphSketchFormat,
-                                 SylphMpaFormat, SylphTaxonomyDirFmt,
-                                 SylphTaxonomyFormat, SylphTaxProfilesDirFmt)
+                                 SylphSketchesDirFmt, SylphSketchFormat)
 from mosh_sylph._sylph import (GTDB_RELEASES, fetch_database, profile, query,
                                sketch)
-from mosh_sylph._sylph_tax import (MERGE_COLUMNS, TAXONOMIES, tax_download,
-                                   tax_merge, taxprof)
-from mosh_sylph._types import (SylphDatabase, SylphMergedProfile, SylphProfile,
-                               SylphQuery,
-                               SylphSketches, SylphTaxonomy, SylphTaxProfiles)
+from mosh_sylph._types import (SylphDatabase, SylphProfile, SylphQuery,
+                               SylphSketches)
 
 citations = Citations.load("citations.bib", package="mosh_sylph")
 
@@ -46,10 +36,10 @@ plugin = Plugin(
     version=__version__,
     website="https://github.com/gregcaporaso/mosh-sylph",
     package="mosh_sylph",
-    description=("Thin wrappers of the sylph metagenome profiler and sylph-tax "
-                 "and conversions of those outputs to feature tables, "
-                 "taxonomies and metadata."),
-    short_description="sylph and sylph-tax metagenome profiling.",
+    description=("Thin wrappers of the sylph metagenome profiler and "
+                 "conversions of its outputs to genome-keyed feature tables "
+                 "and metadata."),
+    short_description="sylph metagenome profiling.",
     citations=[citations['Shaw-Yu-2025']]
 )
 
@@ -81,24 +71,15 @@ _SEARCH_PARAMETER_DESCRIPTIONS = {
                   'first-stage screen of a two-stage database (--screen-ani).'}
 
 plugin.register_formats(SylphDatabaseFormat, SylphDatabaseDirFmt,
-                        SylphTaxonomyFormat, SylphTaxonomyDirFmt,
                         SylphSketchFormat, SylphSketchesDirFmt,
                         SylphProfileFormat, SylphProfileDirFmt,
-                        SylphQueryFormat, SylphQueryDirFmt,
-                        SylphMpaFormat, SylphTaxProfilesDirFmt,
-                        SylphMergedProfileFormat, SylphMergedProfileDirFmt)
-plugin.register_semantic_types(SylphDatabase, SylphTaxonomy, SylphSketches,
-                               SylphProfile, SylphQuery, SylphTaxProfiles,
-                               SylphMergedProfile)
+                        SylphQueryFormat, SylphQueryDirFmt)
+plugin.register_semantic_types(SylphDatabase, SylphSketches, SylphProfile,
+                               SylphQuery)
 plugin.register_artifact_class(
     SylphDatabase, SylphDatabaseDirFmt,
     description='A two-stage sylph genome database (.syl2db, sylph >= 1.0.0), '
                 'which sylph profile and sylph query search.')
-plugin.register_artifact_class(
-    SylphTaxonomy, SylphTaxonomyDirFmt,
-    description='sylph-tax taxonomy metadata: a gzipped two-column table of '
-                'genome accession and taxonomy string, which sylph-tax taxprof '
-                'joins to sylph profiles.')
 plugin.register_artifact_class(
     SylphSketches, SylphSketchesDirFmt,
     description='sylph read sketches, one .sylsp file per sample, which sylph '
@@ -113,17 +94,6 @@ plugin.register_artifact_class(
     description='sylph query output: a TSV with one row per sample and '
                 'database genome with enough sampled k-mers (containment ANI, '
                 'coverage), as sylph writes it.')
-plugin.register_artifact_class(
-    SylphTaxProfiles, SylphTaxProfilesDirFmt,
-    description='sylph-tax taxprof output: one .sylphmpa taxonomic profile '
-                'per sample in which sylph detected a genome, as sylph-tax '
-                'writes them.')
-plugin.register_artifact_class(
-    SylphMergedProfile, SylphMergedProfileDirFmt,
-    description='sylph-tax merge output: a TSV of one profile column (for '
-                'example relative_abundance) with a row per clade at every '
-                'rank and a column per sample, as sylph-tax writes it.')
-
 plugin.methods.register_function(
     function=fetch_database,
     inputs={},
@@ -148,28 +118,6 @@ plugin.methods.register_function(
         + _EXPERIMENTAL),
     citations=[citations['Shaw-Yu-2025']],
     examples={'fetch_database_r232': _fetch_database_example},
-)
-
-plugin.methods.register_function(
-    function=tax_download,
-    inputs={},
-    parameters={'taxonomy': Str % Choices(list(TAXONOMIES))},
-    outputs=[('sylph_taxonomy', SylphTaxonomy)],
-    parameter_descriptions={
-        'taxonomy': 'sylph-tax\'s identifier of the taxonomy: GTDB_r<release> '
-                    'for the database fetch-database downloads for that '
-                    'release, GlobDB_r<release> for an imported GlobDB '
-                    'database.'},
-    output_descriptions={
-        'sylph_taxonomy': 'The taxonomy metadata file, as sylph-tax download '
-                          'stores it.'},
-    name='Download sylph-tax taxonomy metadata',
-    description=(
-        'Downloads the taxonomy metadata file that sylph-tax download fetches '
-        'for one taxonomy identifier, from the URL sylph-tax lists for it '
-        '(sylph-tax download itself fetches every taxonomy at once).'),
-    citations=[citations['Shaw-Yu-2025']],
-    examples={'tax_download_gtdb_r232': _tax_download_example},
 )
 
 plugin.methods.register_function(
@@ -231,8 +179,8 @@ plugin.methods.register_function(
                    'nothing is detected has no rows.'},
     name='Profile sketches against a database',
     description=('sylph profile: species-level abundances and ANI of the '
-                 'database genomes in every sample. sylph-tax taxprof adds '
-                 'the taxonomy.' + _EXPERIMENTAL),
+                 'database genomes in every sample; profile-to-tables turns it '
+                 'into feature tables.' + _EXPERIMENTAL),
     citations=[citations['Shaw-Yu-2025']],
     examples={'profile_with_unknown_share': _profile_example},
 )
@@ -265,51 +213,6 @@ plugin.methods.register_function(
         + _EXPERIMENTAL),
     citations=[citations['Shaw-Yu-2025']],
     examples={'query_sketches': _query_example},
-)
-
-plugin.methods.register_function(
-    function=taxprof,
-    inputs={'profile': SylphProfile, 'sylph_taxonomy': SylphTaxonomy},
-    parameters={},
-    outputs=[('taxonomic_profiles', SylphTaxProfiles)],
-    input_descriptions={
-        'profile': 'A sylph profile.',
-        'sylph_taxonomy': 'sylph-tax taxonomy metadata for the profile\'s '
-                          'database (GTDB_r<release> for a GTDB database).'},
-    output_descriptions={
-        'taxonomic_profiles': 'One .sylphmpa file per sample in which sylph '
-                              'detected a genome: abundances summed at every '
-                              'rank from domain to genome (t__).'},
-    name='Add taxonomy to a sylph profile',
-    description=(
-        'sylph-tax taxprof: joins the taxonomy to each detected genome and '
-        'writes a MetaPhlAn-style profile per sample. Samples with no '
-        'detected genome get no file; taxprof-to-tables gives them an all-zero '
-        'column. A genome missing from the taxonomy is reported under '
-        'NO_TAXONOMY.'),
-    citations=[citations['Shaw-Yu-2025']],
-    examples={'taxprof_gtdb': _taxprof_example},
-)
-
-plugin.methods.register_function(
-    function=tax_merge,
-    inputs={'taxonomic_profiles': SylphTaxProfiles},
-    parameters={'column': Str % Choices(MERGE_COLUMNS)},
-    outputs=[('merged_profile', SylphMergedProfile)],
-    input_descriptions={'taxonomic_profiles': 'sylph-tax taxprof profiles.'},
-    parameter_descriptions={
-        'column': 'The profile column to merge (sylph-tax merge --column): '
-                  'relative_abundance (taxonomic abundance), '
-                  'sequence_abundance, ANI or Coverage (genome rows only).'},
-    output_descriptions={
-        'merged_profile': 'One row per clade (every rank, | separated) and one '
-                          'column per sample; clades absent from a sample are '
-                          '0.'},
-    name='Merge sylph-tax profiles into one table',
-    description=('sylph-tax merge: one column of every sample\'s profile side '
-                 'by side.' + _EXPERIMENTAL),
-    citations=[citations['Shaw-Yu-2025']],
-    examples={'tax_merge_relative_abundance': _tax_merge_example},
 )
 
 plugin.methods.register_function(
@@ -355,74 +258,39 @@ plugin.methods.register_function(
 )
 
 plugin.methods.register_function(
-    function=taxprof_to_tables,
-    inputs={'taxonomic_profiles': SylphTaxProfiles,
-            'sketches': SylphSketches},
-    parameters={},
-    outputs=[('taxonomic_abundance', FeatureTable[RelativeFrequency]),
-             ('sequence_abundance', FeatureTable[RelativeFrequency]),
-             ('taxonomy', FeatureData[Taxonomy]),
-             ('stats', ImmutableMetadata)],
-    input_descriptions={
-        'taxonomic_profiles': 'sylph-tax taxprof profiles of a GTDB database '
-                              '(seven ranks, d__ to s__, above each genome).',
-        'sketches': 'The sketches that were profiled: their sample IDs are '
-                    'the table\'s samples, so a sample in which sylph '
-                    'detected nothing gets an all-zero column.'},
-    output_descriptions={
-        'taxonomic_abundance': 'Genome-size-corrected abundance of each '
-                               'genome (sylph\'s Taxonomic_abundance), as '
-                               'proportions summing to 1 per sample with a '
-                               'detection.',
-        'sequence_abundance': 'Share of reads assigned to each genome '
-                              '(sylph\'s Sequence_abundance), renormalized '
-                              'to sum to 1 over the detected genomes.',
-        'taxonomy': 'The GTDB taxonomy of every genome in the tables, keyed '
-                    'by accession.',
-        'stats': 'Per sample: genomes and genera detected, median ANI of the '
-                 'detected genomes, and unknown-share, the share of reads '
-                 'not assigned to any database genome (meaningful only for a '
-                 'profile made with estimate-unknown; 0 otherwise, 1 when '
-                 'nothing was detected).'},
-    name='Feature tables and taxonomy from sylph-tax profiles',
-    description=(
-        'Converts sylph-tax taxprof profiles into genome-keyed feature tables '
-        '(features are accessions parsed from the t__ genome labels, e.g. '
-        'GCF_000023865.1), the matching taxonomy, and per-sample statistics. '
-        'Collapse the tables to a rank with taxa collapse and the taxonomy.'
-        + _EXPERIMENTAL),
-    citations=[citations['Shaw-Yu-2025']],
-    examples={'taxprof_to_tables': _taxprof_to_tables_example},
-)
-
-plugin.methods.register_function(
     function=query_to_metadata,
-    inputs={'query': SylphQuery, 'sylph_taxonomy': SylphTaxonomy},
-    parameters={'targets': List[Str]},
+    inputs={'query': SylphQuery, 'taxonomy': FeatureData[Taxonomy]},
+    parameters={'gtdb_ids': Bool, 'targets': List[Str]},
     outputs=[('query_metadata', ImmutableMetadata)],
     input_descriptions={
         'query': 'A sylph query result.',
-        'sylph_taxonomy': 'sylph-tax taxonomy metadata for the query\'s '
-                          'database.'},
+        'taxonomy': 'A taxonomy keyed like the genome IDs (GTDB\'s taxonomy '
+                    'file imported as FeatureData[Taxonomy]), joined to the '
+                    'rows when given (optional).'},
     parameter_descriptions={
-        'targets': 'Keep only genomes whose taxonomy string or accession '
+        'gtdb_ids': 'Name the genomes as GTDB does (RS_GCF_... for RefSeq, '
+                    'GB_GCA_... for GenBank), the IDs of GTDB\'s taxonomy '
+                    'files and trees; off, the NCBI accession parsed from the '
+                    'genome file name (GCF_000023865.1), or the file name '
+                    'without its extension for a non-NCBI genome.',
+        'targets': 'Keep only genomes whose taxonomy string or genome ID '
                    'contains one of these texts (e.g. g__Thermobifida; or '
                    'GCF_001592045.1); all genomes when omitted.'},
     output_descriptions={
         'query_metadata': 'One row per sample and genome, ID '
-                          '<sample-id>-<accession>, with columns sample, '
-                          'accession, taxonomy, adjusted-ani, '
+                          '<sample-id>-<genome>, with columns sample, genome, '
+                          'taxonomy (empty without a taxonomy), adjusted-ani, '
                           'effective-coverage, ani-5-percentile and '
                           'ani-95-percentile (sylph\'s 5-95 percentile '
                           'interval, missing when sylph reports NA), '
                           'containment-index and naive-ani.'},
     name='Metadata from a sylph query',
     description=(
-        'Tabulates sylph query output with the taxonomy joined by accession, '
-        'for metadata tabulate or filtering. At effective coverage below '
-        'about 0.1x the adjusted ANI and its interval overshoot (the 95th '
-        'percentile can exceed 100); read such rows with the containment '
-        'index and naive ANI.' + _EXPERIMENTAL),
+        'Tabulates sylph query output, with a taxonomy joined by genome ID '
+        'when given, for metadata tabulate or filtering. At effective '
+        'coverage below about 0.1x the adjusted ANI and its interval '
+        'overshoot (the 95th percentile can exceed 100); read such rows with '
+        'the containment index and naive ANI.' + _EXPERIMENTAL),
     citations=[citations['Shaw-Yu-2025']],
     examples={'query_to_metadata_thermobifida': _query_to_metadata_example},
 )

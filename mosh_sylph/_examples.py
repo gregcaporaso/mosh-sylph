@@ -37,15 +37,6 @@ def _fetch_database_example(use):
     )
 
 
-def _tax_download_example(use):
-    # TODO: this is AI-generated code; human review pending
-    use.action(
-        use.UsageAction('sylph', 'tax_download'),
-        use.UsageInputs(taxonomy='GTDB_r232'),
-        use.UsageOutputNames(sylph_taxonomy='sylph-taxonomy-gtdb-r232'),
-    )
-
-
 def _reads_factory():
     with tempfile.TemporaryDirectory() as work:
         manifest = os.path.join(work, 'manifest.tsv')
@@ -108,48 +99,12 @@ def _query_example(use):
     )
 
 
-def _taxonomy_factory():
-    from mosh_sylph._formats import SylphTaxonomyFormat
-    return Artifact.import_data('SylphTaxonomy', _data_path('taxonomy.tsv.gz'),
-                                SylphTaxonomyFormat)
-
-
 def _profile_factory():
     from mosh_sylph.plugin_setup import plugin
     sketches, = plugin.methods['sketch'](_reads_factory(), threads=1)
     profile, = plugin.methods['profile'](sketches, _database_factory(),
                                          threads=1, estimate_unknown=True)
     return profile
-
-
-def _taxprof_example(use):
-    # TODO: this is AI-generated code; human review pending
-    profile = use.init_artifact('sylph-profile', _profile_factory)
-    taxonomy = use.init_artifact('sylph-taxonomy', _taxonomy_factory)
-    use.action(
-        use.UsageAction('sylph', 'taxprof'),
-        use.UsageInputs(profile=profile, sylph_taxonomy=taxonomy),
-        use.UsageOutputNames(taxonomic_profiles='sylph-taxprof'),
-    )
-
-
-def _taxprof_factory():
-    # TODO: this is AI-generated code; human review pending
-    from mosh_sylph.plugin_setup import plugin
-    profiles, = plugin.methods['taxprof'](_profile_factory(),
-                                          _taxonomy_factory())
-    return profiles
-
-
-def _tax_merge_example(use):
-    # TODO: this is AI-generated code; human review pending
-    profiles = use.init_artifact('sylph-taxprof', _taxprof_factory)
-    use.action(
-        use.UsageAction('sylph', 'tax_merge'),
-        use.UsageInputs(taxonomic_profiles=profiles,
-                        column='relative_abundance'),
-        use.UsageOutputNames(merged_profile='sylph-merged-relative-abundance'),
-    )
 
 
 def _sketches_factory():
@@ -172,19 +127,6 @@ def _profile_to_tables_example(use):
     )
 
 
-def _taxprof_to_tables_example(use):
-    # TODO: this is AI-generated code; human review pending
-    profiles = use.init_artifact('sylph-taxprof', _taxprof_factory)
-    sketches = use.init_artifact('sketches', _sketches_factory)
-    use.action(
-        use.UsageAction('sylph', 'taxprof_to_tables'),
-        use.UsageInputs(taxonomic_profiles=profiles, sketches=sketches),
-        use.UsageOutputNames(taxonomic_abundance='sylph-taxonomic-abundance',
-                             sequence_abundance='sylph-sequence-abundance',
-                             taxonomy='sylph-taxonomy', stats='sylph-stats'),
-    )
-
-
 def _query_factory():
     # TODO: this is AI-generated code; human review pending
     from mosh_sylph.plugin_setup import plugin
@@ -193,13 +135,33 @@ def _query_factory():
     return result
 
 
+_GENOME_TAXONOMY = {
+    'RS_GCF_000023865.1': 'd__Bacteria;p__Actinomycetota;c__Actinomycetes;'
+                          'o__Mycobacteriales;f__Pseudonocardiaceae;'
+                          'g__Saccharomonospora;s__Saccharomonospora viridis',
+    'RS_GCF_001592045.1': 'd__Bacteria;p__Actinomycetota;c__Actinomycetes;'
+                          'o__Streptosporangiales;f__Streptosporangiaceae;'
+                          'g__Thermobifida;s__Thermobifida fusca',
+}
+
+
+def _genome_taxonomy_factory():
+    # TODO: this is AI-generated code; human review pending
+    """The GTDB r232 taxonomy of two fixture genomes keyed by GTDB genome ID,
+    shaped like GTDB's taxonomy file imported as FeatureData[Taxonomy]."""
+    import pandas as pd
+    taxonomy = pd.Series(_GENOME_TAXONOMY, name='Taxon')
+    taxonomy.index.name = 'Feature ID'
+    return Artifact.import_data('FeatureData[Taxonomy]', taxonomy)
+
+
 def _query_to_metadata_example(use):
     # TODO: this is AI-generated code; human review pending
     query = use.init_artifact('sylph-query', _query_factory)
-    taxonomy = use.init_artifact('sylph-taxonomy', _taxonomy_factory)
+    taxonomy = use.init_artifact('gtdb-taxonomy', _genome_taxonomy_factory)
     use.action(
         use.UsageAction('sylph', 'query_to_metadata'),
-        use.UsageInputs(query=query, sylph_taxonomy=taxonomy,
+        use.UsageInputs(query=query, taxonomy=taxonomy,
                         targets=['g__Thermobifida;']),
         use.UsageOutputNames(query_metadata='thermobifida-query'),
     )

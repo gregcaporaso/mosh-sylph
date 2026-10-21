@@ -6,10 +6,9 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-"""File formats: each holds a sylph or sylph-tax file exactly as the tool
-reads or writes it."""
+"""File formats: each holds a sylph file exactly as sylph reads or writes
+it."""
 
-import gzip
 import os
 import subprocess
 
@@ -29,31 +28,6 @@ class SylphDatabaseFormat(model.BinaryFileFormat):
 
 SylphDatabaseDirFmt = model.SingleFileDirectoryFormat(
     'SylphDatabaseDirFmt', 'database.syl2db', SylphDatabaseFormat)
-
-
-class SylphTaxonomyFormat(model.BinaryFileFormat):
-    """sylph-tax taxonomy metadata: gzipped, tab-separated, one genome per
-    line (accession or genome file name, ;-separated taxonomy string, and an
-    optional third column such as a virus host)."""
-
-    def _validate_(self, level):
-        # TODO: this is AI-generated code; human review pending
-        lines = {'min': 10, 'max': None}[level]
-        try:
-            with gzip.open(str(self), 'rt') as fh:
-                for i, line in enumerate(fh):
-                    if lines is not None and i >= lines:
-                        break
-                    if len(line.rstrip('\n').split('\t')) < 2:
-                        raise model.ValidationError(
-                            f'line {i + 1}: expected an accession and a '
-                            'taxonomy string separated by a tab')
-        except (OSError, EOFError) as e:
-            raise model.ValidationError(f'not gzipped: {e}')
-
-
-SylphTaxonomyDirFmt = model.SingleFileDirectoryFormat(
-    'SylphTaxonomyDirFmt', 'taxonomy.tsv.gz', SylphTaxonomyFormat)
 
 
 class SylphSketchFormat(model.BinaryFileFormat):
@@ -127,36 +101,3 @@ class SylphQueryFormat(_SylphTSVFormat):
 
 SylphQueryDirFmt = model.SingleFileDirectoryFormat(
     'SylphQueryDirFmt', 'query.tsv', SylphQueryFormat)
-
-
-class SylphMpaFormat(model.TextFileFormat):
-    """One sample's sylph-tax taxonomic profile (.sylphmpa)."""
-
-    def _validate_(self, level):
-        # TODO: this is AI-generated code; human review pending
-        with open(str(self)) as fh:
-            first, second = fh.readline(), fh.readline()
-        if not first.startswith('#SampleID\t'):
-            raise model.ValidationError('expected a #SampleID header line')
-        if not second.startswith('clade_name\trelative_abundance\t'):
-            raise model.ValidationError('expected the clade_name column header')
-
-
-class SylphTaxProfilesDirFmt(model.DirectoryFormat):
-    """sylph-tax taxprof output: <sample-id>.sylphmpa per sample in which
-    sylph detected a genome."""
-    profiles = model.FileCollection(r'.+\.sylphmpa$', format=SylphMpaFormat)
-
-    @profiles.set_path_maker
-    def _profile_path(self, sample_id):
-        # TODO: this is AI-generated code; human review pending
-        return f'{sample_id}.sylphmpa'
-
-
-class SylphMergedProfileFormat(_SylphTSVFormat):
-    """sylph-tax merge output: clades by samples for one column."""
-    HEADER = ('clade_name',)
-
-
-SylphMergedProfileDirFmt = model.SingleFileDirectoryFormat(
-    'SylphMergedProfileDirFmt', 'merged.tsv', SylphMergedProfileFormat)
