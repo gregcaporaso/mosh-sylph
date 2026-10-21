@@ -25,14 +25,12 @@ GTDB_RELEASES = ['226', '232']
 
 
 def _database_url(base_url, release):
-    # TODO: this is AI-generated code; human review pending
     """The authors' file name for the two-stage GTDB database of a release."""
     return f'{base_url.rstrip("/")}/gtdb-r{release}-c200-dbv2.syl2db'
 
 
 def fetch_database(release: str = GTDB_RELEASES[-1],
                    base_url: str = DEFAULT_BASE_URL) -> SylphDatabaseFormat:
-    # TODO: this is AI-generated code; human review pending
     """Download the sylph authors' pre-built GTDB database of a release."""
     fmt = SylphDatabaseFormat()
     _download(_database_url(base_url, release), str(fmt))
@@ -42,7 +40,6 @@ def fetch_database(release: str = GTDB_RELEASES[-1],
 def sketch(reads: SingleLanePerSamplePairedEndFastqDirFmt, threads: int = 3,
            c: int = 200, k: int = 31, fpr: float = 0.0001
            ) -> SylphSketchesDirFmt:
-    # TODO: this is AI-generated code; human review pending
     """sylph sketch of every sample's read pairs, named by sample ID."""
     manifest = reads.manifest.view(pd.DataFrame)
     samples = list(manifest.index)
@@ -63,7 +60,6 @@ def sketch(reads: SingleLanePerSamplePairedEndFastqDirFmt, threads: int = 3,
 
 def _search_options(threads, minimum_ani, min_number_kmers, min_contain,
                     min_count_correct, screen_ani):
-    # TODO: this is AI-generated code; human review pending
     """The options sylph profile and sylph query share."""
     return ['-t', str(threads), '--minimum-ani', str(minimum_ani),
             '--min-number-kmers', str(min_number_kmers),
@@ -78,7 +74,6 @@ def profile(sketches: SylphSketchesDirFmt, database: SylphDatabaseFormat,
             min_count_correct: float = 3.0, estimate_unknown: bool = False,
             read_seq_id: float = None, screen_ani: float = 85.0
             ) -> SylphProfileFormat:
-    # TODO: this is AI-generated code; human review pending
     """sylph profile of every sketch against the database."""
     result = SylphProfileFormat()
     _run(['sylph', 'profile']
@@ -97,7 +92,6 @@ def query(sketches: SylphSketchesDirFmt, database: SylphDatabaseFormat,
           min_number_kmers: int = 10, min_contain: int = 7,
           min_count_correct: float = 3.0, screen_ani: float = 85.0
           ) -> SylphQueryFormat:
-    # TODO: this is AI-generated code; human review pending
     """sylph query of every sketch against the database."""
     result = SylphQueryFormat()
     _run(['sylph', 'query']
