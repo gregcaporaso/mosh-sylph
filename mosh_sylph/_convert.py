@@ -88,8 +88,6 @@ def _gtdb_id(accession):
 
 
 def _read_profile(df):
-    # TODO: this is AI-generated code; human review pending (the input is the
-    # DataFrame view of the profile since 2026-10-22; the function had passed)
     """sylph profile output (its DataFrame view: strings, one row per sample
     and genome) -> {sample: DataFrame indexed by accession with rel, seq,
     ani}."""
@@ -114,8 +112,6 @@ def _read_profile(df):
 def profile_to_tables(profile: pd.DataFrame,
                       sketches: SylphSketchesDirFmt, gtdb_ids: bool = True
                       ) -> (biom.Table, biom.Table, qiime2.Metadata):
-    # TODO: this is AI-generated code; human review pending (the profile arrives as
-    # its DataFrame view since 2026-10-22; the function had passed)
     """sylph profile output -> genome-keyed tables and per-sample statistics,
     without a taxonomy; the sketches give the full sample list."""
     per_sample = _read_profile(profile)
@@ -126,8 +122,6 @@ def profile_to_tables(profile: pd.DataFrame,
 
 
 def _query_to_metadata(df, taxonomy=None, gtdb_ids=True, targets=None):
-    # TODO: this is AI-generated code; human review pending (the input is the
-    # DataFrame view of the query since 2026-10-22)
     """sylph query output (its DataFrame view) -> one row per sample and
     genome, ID '<sample>-<genome>' (sample-id is reserved for the ID header),
     the taxonomy joined by genome ID when given, and the 5-95 percentile
@@ -163,7 +157,5 @@ def _query_to_metadata(df, taxonomy=None, gtdb_ids=True, targets=None):
 def query_to_metadata(query: pd.DataFrame, taxonomy: pd.Series = None,
                       gtdb_ids: bool = True, targets: list = None
                       ) -> qiime2.Metadata:
-    # TODO: this is AI-generated code; human review pending (the query arrives as its
-    # DataFrame view since 2026-10-22)
     """sylph query output as metadata, with a taxonomy joined when given."""
     return _query_to_metadata(query, taxonomy, gtdb_ids, targets)

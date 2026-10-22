@@ -128,7 +128,6 @@ SylphQueryDirFmt = model.SingleFileDirectoryFormat(
 
 
 def _read_sylph_tsv(path):
-    # TODO: this is AI-generated code; human review pending
     """A sylph TSV as a DataFrame of strings, read as sylph-tax reads sylph
     output: no quoting, and only the header's columns, because a tab inside
     a genome's first contig name adds fields to its Contig_name rows."""
@@ -139,10 +138,8 @@ def _read_sylph_tsv(path):
 
 
 def _profile_to_dataframe(ff: SylphProfileFormat) -> pd.DataFrame:
-    # TODO: this is AI-generated code; human review pending
     return _read_sylph_tsv(str(ff))
 
 
 def _query_to_dataframe(ff: SylphQueryFormat) -> pd.DataFrame:
-    # TODO: this is AI-generated code; human review pending
     return _read_sylph_tsv(str(ff))
