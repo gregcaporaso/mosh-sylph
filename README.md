@@ -62,7 +62,7 @@ rachis tools import \
   --input-path globdb-r232.syl2db \
   --output-path sylph-globdb-r232.qza
 ```
-Importing a database or a sketch runs `sylph inspect` on the file (the full validation level), which reads it whole: minutes and the database's size in memory for the 20 GB GTDB database; an action's own outputs are only checked for the `SY2D` magic (databases) or emptiness (sketches), since sylph wrote them.
+A database is checked with `sylph inspect` whenever it is validated, including the output of `fetch-database`, so a broken download fails at once (9 s and 4.2 GB of memory on the 20 GB GTDB r232 database, which it reads only partially); a sketch is checked with `sylph inspect` when imported and only for emptiness as an action's output.
 
 ## Typical use
 
