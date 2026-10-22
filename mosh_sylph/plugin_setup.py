@@ -115,8 +115,8 @@ plugin.methods.register_function(
     description=(
         'Downloads the sylph authors\' pre-built two-stage database of the GTDB '
         'species representatives for one release. Reads must be sketched with '
-        'the same c (200) and k (31).'
-        + _EXPERIMENTAL),
+        'the same c (200) and k (31). If you\'d like to use other databases, '
+        'those can be downloaded manually and imported.'),
     citations=[citations['Shaw-Yu-2025']],
     examples={'fetch_database_r232': _fetch_database_example},
 )
@@ -146,8 +146,7 @@ plugin.methods.register_function(
     description=('sylph sketch of every sample\'s read pairs (--l1, --l2, with '
                  'the sample IDs as sketch names through --lS): the k-mer '
                  'sketch that sylph profile and sylph query search. Sketch '
-                 'once, then profile and query as often as needed.'
-                 + _EXPERIMENTAL),
+                 'once, then profile and query as often as needed.'),
     citations=[citations['Shaw-Yu-2025']],
     examples={'sketch_reads': _sketch_example},
 )
@@ -181,7 +180,7 @@ plugin.methods.register_function(
     name='Profile sketches against a database',
     description=('sylph profile: species-level abundances and ANI of the '
                  'database genomes in every sample; profile-to-tables turns it '
-                 'into feature tables.' + _EXPERIMENTAL),
+                 'into feature tables.'),
     citations=[citations['Shaw-Yu-2025']],
     examples={'profile_with_unknown_share': _profile_example},
 )
