@@ -31,7 +31,6 @@ from mosh_sylph._formats import (SylphProfileFormat, SylphQueryFormat,
 
 
 def _accession(label):
-    # TODO: this is AI-generated code; human review pending
     """t__ label (a genome file name) -> accession, e.g. GCF_000227485.1."""
     name = label.split('/')[-1]
     m = re.match(r'^(GC[AF]_\d+\.\d+)', name)

@@ -20,8 +20,6 @@ _INSPECT_SUFFIX = {'database': '.syl2db', 'sketch': '.sylsp'}
 
 
 def _inspect(path, what):
-    # TODO: this is AI-generated code; human review pending (rewritten on
-    # 2026-10-22 after it had passed: the symlink and the empty-report check)
     """Raise ValidationError unless the installed sylph can read the file as
     a `what` (database or sketch): `sylph inspect`, which picks its parser by
     file extension and skips any other extension with a warning and exit
@@ -54,7 +52,6 @@ class SylphDatabaseFormat(model.BinaryFileFormat):
     lands."""
 
     def _validate_(self, level):
-        # TODO: this is AI-generated code; human review pending
         with open(str(self), 'rb') as fh:
             if fh.read(4) != b'SY2D':
                 raise model.ValidationError(
@@ -73,8 +70,6 @@ class SylphSketchFormat(model.BinaryFileFormat):
     which sylph itself wrote) only an empty file is rejected."""
 
     def _validate_(self, level):
-        # TODO: this is AI-generated code; human review pending (the body
-        # moved into _inspect on 2026-10-22, after this function had passed)
         if os.path.getsize(str(self)) == 0:
             raise model.ValidationError('empty sylph sketch')
         if level == 'max':
