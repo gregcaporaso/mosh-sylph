@@ -11,20 +11,35 @@ it."""
 
 import os
 import subprocess
+import tempfile
 
 from qiime2.plugin import model
 
 
+_INSPECT_SUFFIX = {'database': '.syl2db', 'sketch': '.sylsp'}
+
+
 def _inspect(path, what):
-    # TODO: this is AI-generated code; human review pending
-    """Raise ValidationError unless the installed sylph can read the file:
-    `sylph inspect`, its YAML report discarded. On the 20 GB GTDB r232
-    two-stage database this takes 9 s and 4.2 GB of memory (it reads the
-    stage-one screen sketches, not the whole file; measured on bacon,
-    2026-10-22). The error carries the last line sylph printed."""
-    run = subprocess.run(['sylph', 'inspect', path], stdout=subprocess.DEVNULL,
-                         stderr=subprocess.PIPE, text=True)
-    if run.returncode != 0:
+    # TODO: this is AI-generated code; human review pending (rewritten on
+    # 2026-10-22 after it had passed: the symlink and the empty-report check)
+    """Raise ValidationError unless the installed sylph can read the file as
+    a `what` (database or sketch): `sylph inspect`, which picks its parser by
+    file extension and skips any other extension with a warning and exit
+    status 0, so the file is inspected through a symlink with the right
+    extension, and an empty report counts as a failure. The YAML report is
+    discarded; on the 20 GB GTDB r232 two-stage database this takes 9 s and
+    4.2 GB of memory (it reads the stage-one screen sketches, not the whole
+    file; measured on bacon, 2026-10-22). The error carries the last line
+    sylph printed."""
+    with tempfile.TemporaryDirectory() as work:
+        link = os.path.join(work, what + _INSPECT_SUFFIX[what])
+        os.symlink(os.path.abspath(path), link)
+        report = os.path.join(work, 'report.yaml')
+        run = subprocess.run(['sylph', 'inspect', link, '-o', report],
+                             stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+                             text=True)
+        failed = run.returncode != 0 or os.path.getsize(report) == 0
+    if failed:
         said = [line for line in run.stderr.splitlines()
                 if line and not line.startswith('note:')]
         raise model.ValidationError(

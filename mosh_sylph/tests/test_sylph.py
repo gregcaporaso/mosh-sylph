@@ -79,16 +79,26 @@ class SylphDatabaseFormatTests(TestPluginBase):
 
     def test_not_a_database_behind_the_magic(self):
         # TODO: this is AI-generated code; human review pending
-        # the magic alone is not enough: sylph inspect runs at every level
-        with tempfile.NamedTemporaryFile(suffix='.syl2db') as fh:
-            fh.write(b'SY2D' + b'x' * 100)
-            fh.flush()
-            fmt = SylphDatabaseFormat(fh.name, mode='r')
-            for level in ['min', 'max']:
-                with self.assertRaisesRegex(
-                        ValidationError,
-                        'sylph inspect cannot read this database'):
-                    fmt.validate(level=level)
+        # the magic alone is not enough: sylph inspect runs at every level,
+        # whatever the file is called (sylph inspect skips an unknown
+        # extension with exit status 0; the validator links the file under
+        # the right one)
+        for suffix in ['.syl2db', '.bin']:
+            with tempfile.NamedTemporaryFile(suffix=suffix) as fh:
+                fh.write(b'SY2D' + b'x' * 100)
+                fh.flush()
+                fmt = SylphDatabaseFormat(fh.name, mode='r')
+                for level in ['min', 'max']:
+                    with self.assertRaisesRegex(
+                            ValidationError,
+                            'sylph inspect cannot read this database'):
+                        fmt.validate(level=level)
+
+    def test_valid_whatever_the_name(self):
+        # TODO: this is AI-generated code; human review pending
+        with tempfile.NamedTemporaryFile(suffix='.bin') as fh:
+            shutil.copyfile(self.get_data_path('fixture.syl2db'), fh.name)
+            SylphDatabaseFormat(fh.name, mode='r').validate()
 
 
 def _sylph(*args):
@@ -143,10 +153,14 @@ class SylphSketchesFormatTests(TestPluginBase):
                                   mode='r').validate()
 
     def test_not_a_sketch(self):
-        # sylph fails differently on a truncated file and on a long one.
-        for content in [b'x', b'x' * 100]:
+        # sylph fails differently on a truncated file and on a long one; the
+        # file's own name does not matter (the validator links it under the
+        # extension sylph inspect expects)
+        for content, name in [(b'x', 's1.paired.sylsp'),
+                              (b'x' * 100, 's1.paired.sylsp'),
+                              (b'x' * 100, 'sketch.bin')]:
             with tempfile.TemporaryDirectory() as d:
-                path = os.path.join(d, 's1.paired.sylsp')
+                path = os.path.join(d, name)
                 with open(path, 'wb') as fh:
                     fh.write(content)
                 fmt = SylphSketchFormat(path, mode='r')
