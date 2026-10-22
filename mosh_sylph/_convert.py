@@ -66,6 +66,9 @@ def _build_tables(per_sample, samples):
     def _table(col):
         data = np.zeros((len(features), len(samples)))
         for j, s in enumerate(samples):
+            # we divide by 100 here to get from percentages ([0.0-100.0]),
+            # which sylph provides, to fractions ([0.0-1.0]), which
+            # FeatureTable[RelativeFrequency] uses.
             data[:, j] = (per_sample[s][col].reindex(features).fillna(0.0)
                           .to_numpy() / 100)
         return biom.Table(data, features, samples)

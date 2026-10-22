@@ -235,9 +235,9 @@ plugin.methods.register_function(
                     'without its extension for a non-NCBI genome.'},
     output_descriptions={
         'taxonomic_abundance': 'Genome-size-corrected abundance of each '
-                               'genome (sylph\'s Taxonomic_abundance), as '
-                               'proportions summing to 1 per sample with a '
-                               'detection.',
+                               'genome (sylph\'s Taxonomic_abundance divided '
+                               'by 100), as proportions summing to 1 per sample '
+                               'with a detection (summing to 0 otherwise).',
         'sequence_abundance': 'Share of reads assigned to each genome '
                               '(sylph\'s Sequence_abundance divided by 100). '
                               'With estimate-unknown a sample sums to its '
@@ -250,13 +250,14 @@ plugin.methods.register_function(
                  'assigned to any database genome (meaningful only for a '
                  'profile made with estimate-unknown; 0 otherwise, 1 when '
                  'nothing was detected).'},
-    name='Feature tables from a sylph profile',
+    name='Create feature tables from a sylph profile',
     description=(
         'Converts sylph profile output into genome-keyed feature tables and '
-        'per-sample statistics, with no taxonomy step: the names in the '
+        'per-sample statistics: the names in the '
         'tables are the genome IDs, by default in GTDB\'s form, so a GTDB '
         'taxonomy file imported as FeatureData[Taxonomy] and the GTDB tree '
-        'serve as the tables\' taxonomy and phylogeny.' + _EXPERIMENTAL),
+        'imported as Phylogeny[Rooted] serve as the tables\' taxonomy and '
+        'phylogeny.'),
     citations=[citations['Shaw-Yu-2025']],
     examples={'profile_to_tables': _profile_to_tables_example},
 )
