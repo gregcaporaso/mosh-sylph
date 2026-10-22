@@ -104,7 +104,7 @@ class ProfileParserTests(unittest.TestCase):
         with open(self.path, 'a') as fh:
             fh.write(_profile([('s2', 'GCA_2.1_genomic.fna.gz', 1, 1, 99, 'c')])
                      .split('\n', 1)[1])
-        with self.assertRaisesRegex(ValueError, 'GCA_2.1 appears twice in sample s2'):
+        with self.assertRaisesRegex(ValueError, 'genome GCA_2.1 twice for sample s2'):
             _read_profile(self.path)
 
     def test_profile_without_sketch(self):

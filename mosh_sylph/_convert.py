@@ -38,7 +38,6 @@ def _accession(label):
 
 
 def _build_tables(per_sample, samples):
-    # TODO: this is AI-generated code; human review pending
     """{sample: DataFrame indexed by genome with rel, seq, ani (percentages)}
     -> (taxonomic table, sequence table, per-sample stats DataFrame).
 
@@ -64,10 +63,10 @@ def _build_tables(per_sample, samples):
     features = sorted({f for df in per_sample.values() for f in df.index})
 
     def _table(col, renormalize):
-        # TODO: this is AI-generated code; human review pending
         data = np.zeros((len(features), len(samples)))
         for j, s in enumerate(samples):
             v = per_sample[s][col].reindex(features).fillna(0.0).to_numpy() / 100
+            # REVIEW QUESTION: why do we renormalize? any why only rel, not seq?
             if renormalize and v.sum() > 0:
                 v = v / v.sum()
             data[:, j] = v
@@ -78,7 +77,6 @@ def _build_tables(per_sample, samples):
 
 
 def _gtdb_id(accession):
-    # TODO: this is AI-generated code; human review pending
     """NCBI assembly accession -> GTDB's prefixed form (RS_ RefSeq, GB_
     GenBank), the genome IDs of GTDB's taxonomy, metadata and trees."""
     if accession.startswith('GCF_'):
@@ -91,7 +89,6 @@ def _gtdb_id(accession):
 
 
 def _read_profile(path):
-    # TODO: this is AI-generated code; human review pending
     """sylph profile output -> {sample: DataFrame indexed by accession with
     rel, seq, ani}. Read as sylph-tax reads it: no quoting, only the
     header's columns (a tab in a contig name adds fields to its row)."""
@@ -108,8 +105,11 @@ def _read_profile(path):
     for sample, group in rows.groupby('sample', sort=True):
         dup = group['accession'][group['accession'].duplicated()]
         if len(dup):
-            raise ValueError(f'{path}: {dup.iloc[0]} appears twice in sample '
-                             f'{sample}')
+            # Two sketch files carrying the same sample name profile as one
+            # sample; set_index below would accept the duplicates and the
+            # reindex in _build_tables would fail on them later, unclearly.
+            raise ValueError(f'the profile lists genome {dup.iloc[0]} twice '
+                             f'for sample {sample}')
         per_sample[sample] = group.set_index('accession')[['rel', 'seq', 'ani']]
     return per_sample
 
@@ -117,7 +117,6 @@ def _read_profile(path):
 def profile_to_tables(profile: SylphProfileFormat,
                       sketches: SylphSketchesDirFmt, gtdb_ids: bool = True
                       ) -> (biom.Table, biom.Table, qiime2.Metadata):
-    # TODO: this is AI-generated code; human review pending
     """sylph profile output -> genome-keyed tables and per-sample statistics,
     without a taxonomy; the sketches give the full sample list."""
     per_sample = _read_profile(str(profile))
