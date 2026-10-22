@@ -10,7 +10,7 @@
 
 from qiime2.plugin import SemanticType
 
-SylphDatabase = SemanticType('SylphDatabase')
+SylphTwoStageDatabase = SemanticType('SylphTwoStageDatabase')
 SylphSketches = SemanticType('SylphSketches')
 SylphProfile = SemanticType('SylphProfile')
 SylphQuery = SemanticType('SylphQuery')

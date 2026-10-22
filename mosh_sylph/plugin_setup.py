@@ -20,13 +20,14 @@ from mosh_sylph._examples import (_fetch_database_example, _profile_example,
                                   _query_example, _query_to_metadata_example,
                                   _sketch_example)
 from mosh_sylph._convert import profile_to_tables, query_to_metadata
-from mosh_sylph._formats import (SylphDatabaseDirFmt, SylphDatabaseFormat,
-                                 SylphProfileDirFmt, SylphProfileFormat,
+from mosh_sylph._formats import (SylphProfileDirFmt, SylphProfileFormat,
                                  SylphQueryDirFmt, SylphQueryFormat,
-                                 SylphSketchesDirFmt, SylphSketchFormat)
+                                 SylphSketchesDirFmt, SylphSketchFormat,
+                                 SylphTwoStageDatabaseDirFmt,
+                                 SylphTwoStageDatabaseFormat)
 from mosh_sylph._sylph import (GTDB_RELEASES, fetch_database, profile, query,
                                sketch)
-from mosh_sylph._types import (SylphDatabase, SylphProfile, SylphQuery,
+from mosh_sylph._types import (SylphTwoStageDatabase, SylphProfile, SylphQuery,
                                SylphSketches)
 
 citations = Citations.load("citations.bib", package="mosh_sylph")
@@ -46,7 +47,7 @@ plugin = Plugin(
 _EXPERIMENTAL = ' EXPERIMENTAL: this is AI-generated code; human review pending.'
 
 # Inputs and options sylph profile and sylph query share.
-_SEARCH_INPUTS = {'sketches': SylphSketches, 'database': SylphDatabase}
+_SEARCH_INPUTS = {'sketches': SylphSketches, 'database': SylphTwoStageDatabase}
 _SEARCH_INPUT_DESCRIPTIONS = {
     'sketches': 'Read sketches, one per sample (made with the database\'s c '
                 'and k).',
@@ -70,14 +71,14 @@ _SEARCH_PARAMETER_DESCRIPTIONS = {
     'screen_ani': 'Minimum adjusted ANI, 0-100, for a genome to pass the '
                   'first-stage screen of a two-stage database (--screen-ani).'}
 
-plugin.register_formats(SylphDatabaseFormat, SylphDatabaseDirFmt,
+plugin.register_formats(SylphTwoStageDatabaseFormat, SylphTwoStageDatabaseDirFmt,
                         SylphSketchFormat, SylphSketchesDirFmt,
                         SylphProfileFormat, SylphProfileDirFmt,
                         SylphQueryFormat, SylphQueryDirFmt)
-plugin.register_semantic_types(SylphDatabase, SylphSketches, SylphProfile,
+plugin.register_semantic_types(SylphTwoStageDatabase, SylphSketches, SylphProfile,
                                SylphQuery)
 plugin.register_artifact_class(
-    SylphDatabase, SylphDatabaseDirFmt,
+    SylphTwoStageDatabase, SylphTwoStageDatabaseDirFmt,
     description='A two-stage sylph genome database (.syl2db, sylph >= 1.0.0), '
                 'which sylph profile and sylph query search.')
 plugin.register_artifact_class(
@@ -99,7 +100,7 @@ plugin.methods.register_function(
     inputs={},
     parameters={'release': Str % Choices(GTDB_RELEASES),
                 'base_url': Str},
-    outputs=[('database', SylphDatabase)],
+    outputs=[('database', SylphTwoStageDatabase)],
     parameter_descriptions={
         'release': 'GTDB release; the newest one the authors have built a '
                    'database for by default.',

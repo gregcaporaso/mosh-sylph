@@ -10,9 +10,9 @@ The tutorial that uses it, integrating a sylph metagenome profile with a 16S pro
 
 | Action | Wraps | Inputs | Parameters | Outputs |
 |---|---|---|---|---|
-| `fetch-database` | download of the authors' pre-built GTDB database | | `release` (the newest listed by default), `base_url` (default `http://faust.compbio.cs.cmu.edu/sylph-stuff`) | `database`: `SylphDatabase` |
+| `fetch-database` | download of the authors' pre-built GTDB database | | `release` (the newest listed by default), `base_url` (default `http://faust.compbio.cs.cmu.edu/sylph-stuff`) | `database`: `SylphTwoStageDatabase` |
 | `sketch` | `sylph sketch` (paired-end reads) | `reads`: `SampleData[PairedEndSequencesWithQuality]` | `threads`, `c` (200), `k` (31; 21 or 31), `fpr` | `sketches`: `SylphSketches` |
-| `profile` | `sylph profile` | `sketches`: `SylphSketches`, `database`: `SylphDatabase` | `threads`, `minimum_ani` (95), `min_number_kmers`, `min_contain`, `min_count_correct`, `estimate_unknown` (off, as in sylph), `read_seq_id`, `screen_ani` | `profile`: `SylphProfile` |
+| `profile` | `sylph profile` | `sketches`: `SylphSketches`, `database`: `SylphTwoStageDatabase` | `threads`, `minimum_ani` (95), `min_number_kmers`, `min_contain`, `min_count_correct`, `estimate_unknown` (off, as in sylph), `read_seq_id`, `screen_ani` | `profile`: `SylphProfile` |
 | `query` | `sylph query` | `sketches`, `database` | as `profile`, `minimum_ani` 90, without `estimate_unknown` and `read_seq_id` | `query`: `SylphQuery` |
 | `profile-to-tables` | conversion | `profile`: `SylphProfile`, `sketches`: `SylphSketches` | `gtdb_ids` (on: `RS_GCF_...` / `GB_GCA_...`, GTDB's genome IDs; off: the NCBI accession) | `taxonomic_abundance`, `sequence_abundance`: `FeatureTable[RelativeFrequency]`; `stats`: `ImmutableMetadata` (genomes, median-ani, unknown-share) |
 | `query-to-metadata` | conversion | `query`: `SylphQuery`, `taxonomy`: `FeatureData[Taxonomy]` (optional, keyed by genome ID) | `gtdb_ids` (as `profile-to-tables`), `targets` (`List[Str]`, optional) | `query_metadata`: `ImmutableMetadata` |
@@ -31,7 +31,7 @@ Below about 0.1x effective coverage the adjusted ANI and its interval overshoot 
 
 | Semantic type | Directory format | File in the artifact | Content |
 |---|---|---|---|
-| `SylphDatabase` | `SylphDatabaseDirFmt` | `database.syl2db` (`SylphDatabaseFormat`) | two-stage sylph database (sylph >= 1.0.0) |
+| `SylphTwoStageDatabase` | `SylphTwoStageDatabaseDirFmt` | `database.syl2db` (`SylphTwoStageDatabaseFormat`) | two-stage sylph database (sylph >= 1.0.0) |
 | `SylphSketches` | `SylphSketchesDirFmt` | `<sample-id>.paired.sylsp` (`SylphSketchFormat`) | one read sketch per sample |
 | `SylphProfile` | `SylphProfileDirFmt` | `profile.tsv` (`SylphProfileFormat`) | sylph profile output |
 | `SylphQuery` | `SylphQueryDirFmt` | `query.tsv` (`SylphQueryFormat`) | sylph query output |
@@ -40,8 +40,8 @@ A database or taxonomy file already on disk is imported as a single file:
 
 ```shell
 rachis tools import \
-  --type SylphDatabase \
-  --input-format SylphDatabaseFormat \
+  --type SylphTwoStageDatabase \
+  --input-format SylphTwoStageDatabaseFormat \
   --input-path gtdb-r232-c200-dbv2.syl2db \
   --output-path sylph-gtdb-r232.qza
 ```
@@ -57,8 +57,8 @@ sylph convert-db-two-screen \
   globdb_r232_sylph_c200.syldb
 
 rachis tools import \
-  --type SylphDatabase \
-  --input-format SylphDatabaseFormat \
+  --type SylphTwoStageDatabase \
+  --input-format SylphTwoStageDatabaseFormat \
   --input-path globdb-r232.syl2db \
   --output-path sylph-globdb-r232.qza
 ```

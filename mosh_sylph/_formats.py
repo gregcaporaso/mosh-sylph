@@ -45,7 +45,7 @@ def _inspect(path, what):
             + (said[-1] if said else f'exit status {run.returncode}'))
 
 
-class SylphDatabaseFormat(model.BinaryFileFormat):
+class SylphTwoStageDatabaseFormat(model.BinaryFileFormat):
     """A two-stage sylph genome database (.syl2db, sylph >= 1.0.0): the SY2D
     magic, then `sylph inspect` at every level, so that a download
     (fetch-database's output is validated at min) is checked as soon as it
@@ -59,8 +59,8 @@ class SylphDatabaseFormat(model.BinaryFileFormat):
         _inspect(str(self), 'database')
 
 
-SylphDatabaseDirFmt = model.SingleFileDirectoryFormat(
-    'SylphDatabaseDirFmt', 'database.syl2db', SylphDatabaseFormat)
+SylphTwoStageDatabaseDirFmt = model.SingleFileDirectoryFormat(
+    'SylphTwoStageDatabaseDirFmt', 'database.syl2db', SylphTwoStageDatabaseFormat)
 
 
 class SylphSketchFormat(model.BinaryFileFormat):

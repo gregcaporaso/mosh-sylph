@@ -22,7 +22,7 @@ from qiime2.plugin.testing import TestPluginBase
 from q2_types.per_sample_sequences import SingleLanePerSamplePairedEndFastqDirFmt
 
 from mosh_sylph import _examples as ex
-from mosh_sylph._formats import (SylphDatabaseFormat, SylphProfileFormat,
+from mosh_sylph._formats import (SylphTwoStageDatabaseFormat, SylphProfileFormat,
                                  SylphQueryFormat, SylphSketchesDirFmt,
                                  SylphSketchFormat)
 from mosh_sylph._sylph import GTDB_RELEASES, _database_url, fetch_database
@@ -37,8 +37,8 @@ class FetchDatabaseTests(TestPluginBase):
             shutil.copy(source, os.path.join(host, 'gtdb-r232-c200-dbv2.syl2db'))
             database, = self.plugin.methods['fetch_database'](
                 release='232', base_url='file://' + host)
-        self.assertEqual(str(database.type), 'SylphDatabase')
-        path = str(database.view(SylphDatabaseFormat))
+        self.assertEqual(str(database.type), 'SylphTwoStageDatabase')
+        path = str(database.view(SylphTwoStageDatabaseFormat))
         self.assertTrue(filecmp.cmp(path, source, shallow=False))
 
     def test_releases_in_numeric_order(self):
@@ -63,19 +63,19 @@ class FetchDatabaseTests(TestPluginBase):
                          'https://mirror/x/gtdb-r226-c200-dbv2.syl2db')
 
 
-class SylphDatabaseFormatTests(TestPluginBase):
+class SylphTwoStageDatabaseFormatTests(TestPluginBase):
     package = 'mosh_sylph.tests'
 
     def test_valid(self):
-        SylphDatabaseFormat(self.get_data_path('fixture.syl2db'),
-                            mode='r').validate()
+        SylphTwoStageDatabaseFormat(self.get_data_path('fixture.syl2db'),
+                                    mode='r').validate()
 
     def test_single_stage_database_rejected(self):
         with tempfile.NamedTemporaryFile(suffix='.syldb') as fh:
             fh.write(b'\x03\x00\x00\x00\x00\x00\x00\x00')
             fh.flush()
             with self.assertRaisesRegex(ValidationError, 'two-stage'):
-                SylphDatabaseFormat(fh.name, mode='r').validate()
+                SylphTwoStageDatabaseFormat(fh.name, mode='r').validate()
 
     def test_not_a_database_behind_the_magic(self):
         # TODO: this is AI-generated code; human review pending
@@ -87,7 +87,7 @@ class SylphDatabaseFormatTests(TestPluginBase):
             with tempfile.NamedTemporaryFile(suffix=suffix) as fh:
                 fh.write(b'SY2D' + b'x' * 100)
                 fh.flush()
-                fmt = SylphDatabaseFormat(fh.name, mode='r')
+                fmt = SylphTwoStageDatabaseFormat(fh.name, mode='r')
                 for level in ['min', 'max']:
                     with self.assertRaisesRegex(
                             ValidationError,
@@ -98,7 +98,7 @@ class SylphDatabaseFormatTests(TestPluginBase):
         # TODO: this is AI-generated code; human review pending
         with tempfile.NamedTemporaryFile(suffix='.bin') as fh:
             shutil.copyfile(self.get_data_path('fixture.syl2db'), fh.name)
-            SylphDatabaseFormat(fh.name, mode='r').validate()
+            SylphTwoStageDatabaseFormat(fh.name, mode='r').validate()
 
 
 def _sylph(*args):
@@ -195,7 +195,7 @@ class _SearchTestBase(TestPluginBase):
         cls.database = ex._database_factory()
         cls.sketch_paths = list(
             cls.sketches.view(SylphSketchesDirFmt).sample_paths().values())
-        cls.database_path = str(cls.database.view(SylphDatabaseFormat))
+        cls.database_path = str(cls.database.view(SylphTwoStageDatabaseFormat))
 
     def _direct(self, command, *options, sketch_paths=None):
         """Output of `sylph <command>` run directly, as text."""

@@ -14,7 +14,7 @@ import tempfile
 import pandas as pd
 from q2_types.per_sample_sequences import SingleLanePerSamplePairedEndFastqDirFmt
 
-from mosh_sylph._formats import (SylphDatabaseFormat, SylphProfileFormat,
+from mosh_sylph._formats import (SylphTwoStageDatabaseFormat, SylphProfileFormat,
                                  SylphQueryFormat, SylphSketchesDirFmt)
 from mosh_sylph._util import _download, _run
 
@@ -30,9 +30,9 @@ def _database_url(base_url, release):
 
 
 def fetch_database(release: str = GTDB_RELEASES[-1],
-                   base_url: str = DEFAULT_BASE_URL) -> SylphDatabaseFormat:
+                   base_url: str = DEFAULT_BASE_URL) -> SylphTwoStageDatabaseFormat:
     """Download the sylph authors' pre-built GTDB database of a release."""
-    fmt = SylphDatabaseFormat()
+    fmt = SylphTwoStageDatabaseFormat()
     _download(_database_url(base_url, release), str(fmt))
     return fmt
 
@@ -68,7 +68,7 @@ def _search_options(threads, minimum_ani, min_number_kmers, min_contain,
             '--screen-ani', str(screen_ani)]
 
 
-def profile(sketches: SylphSketchesDirFmt, database: SylphDatabaseFormat,
+def profile(sketches: SylphSketchesDirFmt, database: SylphTwoStageDatabaseFormat,
             threads: int = 3, minimum_ani: float = 95.0,
             min_number_kmers: int = 10, min_contain: int = 7,
             min_count_correct: float = 3.0, estimate_unknown: bool = False,
@@ -87,7 +87,7 @@ def profile(sketches: SylphSketchesDirFmt, database: SylphDatabaseFormat,
     return result
 
 
-def query(sketches: SylphSketchesDirFmt, database: SylphDatabaseFormat,
+def query(sketches: SylphSketchesDirFmt, database: SylphTwoStageDatabaseFormat,
           threads: int = 3, minimum_ani: float = 90.0,
           min_number_kmers: int = 10, min_contain: int = 7,
           min_count_correct: float = 3.0, screen_ani: float = 85.0

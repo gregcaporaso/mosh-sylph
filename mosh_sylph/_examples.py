@@ -61,9 +61,9 @@ def _sketch_example(use):
 
 
 def _database_factory():
-    from mosh_sylph._formats import SylphDatabaseFormat
-    return Artifact.import_data('SylphDatabase', _data_path('fixture.syl2db'),
-                                SylphDatabaseFormat)
+    from mosh_sylph._formats import SylphTwoStageDatabaseFormat
+    return Artifact.import_data('SylphTwoStageDatabase', _data_path('fixture.syl2db'),
+                                SylphTwoStageDatabaseFormat)
 
 
 def _profile_example(use):
