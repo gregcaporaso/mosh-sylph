@@ -2,7 +2,9 @@
 
 A [QIIME 2](https://qiime2.org) plugin (registered name `sylph`; `rachis sylph <action>`) that wraps the [sylph](https://sylph-docs.github.io/) metagenome profiler (Shaw & Yu, *Nature Biotechnology* 2025).
 Each wrapper runs one sylph command and returns the tool's own output as an artifact; two conversion actions turn those outputs into stock QIIME 2 types, keyed by GTDB genome ID so that GTDB's own taxonomy file and tree serve as taxonomy and phylogeny.
-The plugin was [created from the template](https://develop.qiime2.org/en/stable/plugins/tutorials/create-from-template.html) and is experimental: its code is AI-generated and under review.
+The plugin was [created from the template](https://develop.qiime2.org/en/stable/plugins/tutorials/create-from-template.html).
+
+> **Warning: testing phase.** This plugin is experimental. Its code was written by an AI assistant and has been reviewed function by function (see [AI disclosure](#ai-disclosure)), but it has run on one data set only, its interface may still change, and its results have not been compared with an independent implementation beyond sylph's own output. Pin it by commit, and read your results against sylph's own documentation.
 
 The tutorial that uses it, integrating a sylph metagenome profile with a 16S profile through [q2-confluence](https://github.com/gregcaporaso/q2-confluence), is the [thermo-hec-tutorial](https://github.com/gregcaporaso/thermo-hec-tutorial) repository; this repository carries no documentation of its own.
 
@@ -21,7 +23,7 @@ The sylph options keep sylph's names and defaults; `rachis sylph <action> --help
 
 `profile-to-tables` keys its tables by GTDB genome ID (`RS_GCF_...`, `GB_GCA_...`, from the genome file names of the authors' GTDB databases; `--p-no-gtdb-ids` keeps the NCBI accession or, for other databases, the file name).
 Both tables are sylph's numbers divided by 100: taxonomic abundance is the genome-size-corrected abundance (summing to 1 over the detected genomes), sequence abundance the share of reads, which with `--p-estimate-unknown` sums to the classified share rather than to 1 (the remainder is `unknown-share` in `stats`; see [the sylph cookbook](https://sylph-docs.github.io/sylph-cookbook/) on estimating the unknown percentage).
-`stats` holds, per sample, `genomes`, `genera`, `median-ani` and `unknown-share` (the share of reads assigned to no database genome, meaningful for profiles made with `--p-estimate-unknown`).
+`stats` holds, per sample, `genomes` (detected), `median-ani` and `unknown-share` (the share of reads assigned to no database genome, meaningful for profiles made with `--p-estimate-unknown`).
 A sample in which sylph detected nothing gets an all-zero column and an unknown share of 1; the sample list comes from the sketches.
 
 `query-to-metadata` gives one row per sample and genome (ID `<sample-id>-<genome>`) with the columns `sample`, `genome`, `taxonomy`, `adjusted-ani`, `effective-coverage`, `ani-5-percentile`, `ani-95-percentile`, `contained-kmers`, `total-kmers`, `containment-index` (sylph's `Containment_ind` fraction split into its numerator, denominator and quotient) and `naive-ani`, all numeric but the first three.
@@ -36,7 +38,7 @@ Below about 0.1x effective coverage the adjusted ANI and its interval overshoot 
 | `SylphProfile` | `SylphProfileDirFmt` | `profile.tsv` (`SylphProfileFormat`) | sylph profile output |
 | `SylphQuery` | `SylphQueryDirFmt` | `query.tsv` (`SylphQueryFormat`) | sylph query output |
 
-A `SylphProfile` or `SylphQuery` artifact also views as a `pandas.DataFrame` of strings (`artifact.view(pd.DataFrame)`), read as sylph-tax reads sylph output: no quoting, and only the header's columns, because a tab inside a genome's first contig name adds fields to its row; `profile-to-tables` and `query-to-metadata` work on that view.
+A `SylphProfile` or `SylphQuery` artifact also views as a `pandas.DataFrame` of strings (`artifact.view(pd.DataFrame)`), read the way the sylph authors' own sylph-tax tool reads sylph output: no quoting, and only the header's columns, because a tab inside a genome's first contig name adds fields to its row; `profile-to-tables` and `query-to-metadata` work on that view.
 
 A database or taxonomy file already on disk is imported as a single file:
 
@@ -95,6 +97,19 @@ rachis sylph profile-to-tables \
 
 The tables are keyed by GTDB's genome IDs, so GTDB's own taxonomy file (`bac120_taxonomy_r232.tsv.gz`, imported as `FeatureData[Taxonomy]` with `--input-format HeaderlessTSVTaxonomyFormat`) is their taxonomy and GTDB's tree their phylogeny; the [tutorial](https://github.com/gregcaporaso/thermo-hec-tutorial) does both.
 The database is 19 GB; the tutorial shows how to keep it and the sketches in an artifact cache.
+
+## Version
+
+Versions follow the QIIME 2 release they target, as the distributions' plugins do: `2026.10.0.dev0` is the development version for the 2026.10 release; it becomes `2026.10.0` when that release is out and the review below is complete.
+The version comes from the git tag through versioningit (`mosh_sylph/_version.py` is generated; `rachis info` and `pip show mosh-sylph` report it, with the distance from the tag and the commit appended for untagged commits).
+
+## AI disclosure
+
+The code, tests, usage examples and this README were written by Claude (Anthropic's AI assistant; the build on 2026-10-16 by Claude Opus 5.5, the review passes by Claude Fable 5.1), with the design decisions, the review and every commit's acceptance by @gregcaporaso; each commit message says what was requested and what the assistant implemented, and commits without AI content say so.
+The review worked function by function: every function started with the comment `# TODO: this is AI-generated code; human review pending` and every action's description ended with an `EXPERIMENTAL` sentence, and @gregcaporaso deleted each marker after reading the code, asking questions and requesting changes in the commit history; a function changed after its review got its marker back until it was read again.
+Reviewed as of 2026-10-22: every function in the plugin's code (`_sylph.py`, `_convert.py`, `_formats.py`, `_util.py`, `_types.py`, the registrations in `plugin_setup.py`), so no action carries the `EXPERIMENTAL` sentence.
+Not yet reviewed: the usage examples (`_examples.py`) and the test suite (`mosh_sylph/tests/`); the markers still in those files say which functions.
+What the tests establish independently of that review: every wrapper's output is byte-identical to a direct sylph run on the same files, the converters agree with sylph's own TSV on a small real fixture, and the [tutorial](https://github.com/gregcaporaso/thermo-hec-tutorial) that uses the plugin is rerun in full on a server after every change to an action.
 
 ## Development installation
 
