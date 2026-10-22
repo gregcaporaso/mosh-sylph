@@ -7,12 +7,14 @@
 # ----------------------------------------------------------------------------
 
 """File formats: each holds a sylph file exactly as sylph reads or writes
-it."""
+it; the two TSV outputs also view as a pandas DataFrame of strings."""
 
+import csv
 import os
 import subprocess
 import tempfile
 
+import pandas as pd
 from qiime2.plugin import model
 
 
@@ -123,3 +125,24 @@ class SylphQueryFormat(_SylphTSVFormat):
 
 SylphQueryDirFmt = model.SingleFileDirectoryFormat(
     'SylphQueryDirFmt', 'query.tsv', SylphQueryFormat)
+
+
+def _read_sylph_tsv(path):
+    # TODO: this is AI-generated code; human review pending
+    """A sylph TSV as a DataFrame of strings, read as sylph-tax reads sylph
+    output: no quoting, and only the header's columns, because a tab inside
+    a genome's first contig name adds fields to its Contig_name rows."""
+    with open(path) as fh:
+        columns = fh.readline().rstrip('\n').split('\t')
+    return pd.read_csv(path, sep='\t', dtype=str, quoting=csv.QUOTE_NONE,
+                       usecols=range(len(columns)))
+
+
+def _profile_to_dataframe(ff: SylphProfileFormat) -> pd.DataFrame:
+    # TODO: this is AI-generated code; human review pending
+    return _read_sylph_tsv(str(ff))
+
+
+def _query_to_dataframe(ff: SylphQueryFormat) -> pd.DataFrame:
+    # TODO: this is AI-generated code; human review pending
+    return _read_sylph_tsv(str(ff))

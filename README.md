@@ -36,6 +36,8 @@ Below about 0.1x effective coverage the adjusted ANI and its interval overshoot 
 | `SylphProfile` | `SylphProfileDirFmt` | `profile.tsv` (`SylphProfileFormat`) | sylph profile output |
 | `SylphQuery` | `SylphQueryDirFmt` | `query.tsv` (`SylphQueryFormat`) | sylph query output |
 
+A `SylphProfile` or `SylphQuery` artifact also views as a `pandas.DataFrame` of strings (`artifact.view(pd.DataFrame)`), read as sylph-tax reads sylph output: no quoting, and only the header's columns, because a tab inside a genome's first contig name adds fields to its row; `profile-to-tables` and `query-to-metadata` work on that view.
+
 A database or taxonomy file already on disk is imported as a single file:
 
 ```shell

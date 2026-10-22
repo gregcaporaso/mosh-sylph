@@ -24,7 +24,8 @@ from mosh_sylph._formats import (SylphProfileDirFmt, SylphProfileFormat,
                                  SylphQueryDirFmt, SylphQueryFormat,
                                  SylphSketchesDirFmt, SylphSketchFormat,
                                  SylphTwoStageDatabaseDirFmt,
-                                 SylphTwoStageDatabaseFormat)
+                                 SylphTwoStageDatabaseFormat,
+                                 _profile_to_dataframe, _query_to_dataframe)
 from mosh_sylph._sylph import (GTDB_RELEASES, fetch_database, profile, query,
                                sketch)
 from mosh_sylph._types import (SylphTwoStageDatabase, SylphProfile, SylphQuery,
@@ -75,6 +76,11 @@ plugin.register_formats(SylphTwoStageDatabaseFormat, SylphTwoStageDatabaseDirFmt
                         SylphSketchFormat, SylphSketchesDirFmt,
                         SylphProfileFormat, SylphProfileDirFmt,
                         SylphQueryFormat, SylphQueryDirFmt)
+# The two TSV outputs view as a pandas DataFrame of strings, read as
+# sylph-tax reads them (one function in _formats.py); the converters take
+# that view.
+plugin.register_transformer(_profile_to_dataframe)
+plugin.register_transformer(_query_to_dataframe)
 plugin.register_semantic_types(SylphTwoStageDatabase, SylphSketches, SylphProfile,
                                SylphQuery)
 plugin.register_artifact_class(
@@ -209,8 +215,7 @@ plugin.methods.register_function(
         'reassignment of shared k-mers, so closely related genomes are all '
         'reported. At effective coverage below about 0.1x the adjusted ANI and '
         'its 5-95 percentile interval overshoot (the interval can exceed 100), '
-        'so read low-coverage rows with the containment index and naive ANI.'
-        + _EXPERIMENTAL),
+        'so read low-coverage rows with the containment index and naive ANI.'),
     citations=[citations['Shaw-Yu-2025']],
     examples={'query_sketches': _query_example},
 )
@@ -295,7 +300,7 @@ plugin.methods.register_function(
         'when given, for metadata tabulate or filtering. At effective '
         'coverage below about 0.1x the adjusted ANI and its interval '
         'overshoot (the 95th percentile can exceed 100); read such rows with '
-        'the containment index and naive ANI.' + _EXPERIMENTAL),
+        'the containment index and naive ANI.'),
     citations=[citations['Shaw-Yu-2025']],
     examples={'query_to_metadata_thermobifida': _query_to_metadata_example},
 )

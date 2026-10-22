@@ -19,7 +19,6 @@ query-to-metadata turns sylph query output into one metadata row per sample
 and genome, with a taxonomy joined when given.
 """
 
-import csv
 import re
 
 import biom
@@ -27,8 +26,7 @@ import numpy as np
 import pandas as pd
 import qiime2
 
-from mosh_sylph._formats import (SylphProfileFormat, SylphQueryFormat,
-                                 SylphSketchesDirFmt)
+from mosh_sylph._formats import SylphSketchesDirFmt
 
 
 def _accession(label):
@@ -89,14 +87,12 @@ def _gtdb_id(accession):
                      'one? Turn gtdb_ids off to keep the names as they are')
 
 
-def _read_profile(path):
-    """sylph profile output -> {sample: DataFrame indexed by accession with
-    rel, seq, ani}. Read as sylph-tax reads it: no quoting, only the
-    header's columns (a tab in a contig name adds fields to its row)."""
-    with open(path) as fh:
-        columns = fh.readline().rstrip('\n').split('\t')
-    df = pd.read_csv(path, sep='\t', dtype=str, quoting=csv.QUOTE_NONE,
-                     usecols=range(len(columns)))
+def _read_profile(df):
+    # TODO: this is AI-generated code; human review pending (the input is the
+    # DataFrame view of the profile since 2026-10-22; the function had passed)
+    """sylph profile output (its DataFrame view: strings, one row per sample
+    and genome) -> {sample: DataFrame indexed by accession with rel, seq,
+    ani}."""
     rows = pd.DataFrame({'sample': df['Sample_file'],
                          'accession': df['Genome_file'].map(_accession),
                          'rel': pd.to_numeric(df['Taxonomic_abundance']),
@@ -115,32 +111,28 @@ def _read_profile(path):
     return per_sample
 
 
-def profile_to_tables(profile: SylphProfileFormat,
+def profile_to_tables(profile: pd.DataFrame,
                       sketches: SylphSketchesDirFmt, gtdb_ids: bool = True
                       ) -> (biom.Table, biom.Table, qiime2.Metadata):
+    # TODO: this is AI-generated code; human review pending (the profile arrives as
+    # its DataFrame view since 2026-10-22; the function had passed)
     """sylph profile output -> genome-keyed tables and per-sample statistics,
     without a taxonomy; the sketches give the full sample list."""
-    per_sample = _read_profile(str(profile))
+    per_sample = _read_profile(profile)
     if gtdb_ids:
         per_sample = {s: df.rename(index=_gtdb_id) for s, df in per_sample.items()}
     rel, seq, stats = _build_tables(per_sample, sorted(sketches.sample_paths()))
     return rel, seq, qiime2.Metadata(stats)
 
 
-def _query_to_metadata(path, taxonomy=None, gtdb_ids=True, targets=None):
-    # TODO: this is AI-generated code; human review pending
-    """sylph query output -> one row per sample and genome, ID
-    '<sample>-<genome>' (sample-id is reserved for the ID header), the
-    taxonomy joined by genome ID when given, and the 5-95 percentile
+def _query_to_metadata(df, taxonomy=None, gtdb_ids=True, targets=None):
+    # TODO: this is AI-generated code; human review pending (the input is the
+    # DataFrame view of the query since 2026-10-22)
+    """sylph query output (its DataFrame view) -> one row per sample and
+    genome, ID '<sample>-<genome>' (sample-id is reserved for the ID header),
+    the taxonomy joined by genome ID when given, and the 5-95 percentile
     interval split into two numeric columns (NA -> missing). `targets`: keep
-    only rows whose taxonomy string or genome ID contains one. Read as
-    sylph-tax reads sylph output: no quoting, and only the header's columns,
-    because a tab inside a genome's first contig name adds fields to its
-    Contig_name rows."""
-    with open(path) as fh:
-        columns = fh.readline().rstrip('\n').split('\t')
-    df = pd.read_csv(path, sep='\t', dtype=str, quoting=csv.QUOTE_NONE,
-                     usecols=range(len(columns)))
+    only rows whose taxonomy string or genome ID contains one."""
     if df.empty:
         raise ValueError('sylph query reported no genome with enough sampled '
                          'k-mers in any sample')
@@ -168,9 +160,10 @@ def _query_to_metadata(path, taxonomy=None, gtdb_ids=True, targets=None):
     return qiime2.Metadata(out)
 
 
-def query_to_metadata(query: SylphQueryFormat, taxonomy: pd.Series = None,
+def query_to_metadata(query: pd.DataFrame, taxonomy: pd.Series = None,
                       gtdb_ids: bool = True, targets: list = None
                       ) -> qiime2.Metadata:
-    # TODO: this is AI-generated code; human review pending
+    # TODO: this is AI-generated code; human review pending (the query arrives as its
+    # DataFrame view since 2026-10-22)
     """sylph query output as metadata, with a taxonomy joined when given."""
-    return _query_to_metadata(str(query), taxonomy, gtdb_ids, targets)
+    return _query_to_metadata(query, taxonomy, gtdb_ids, targets)

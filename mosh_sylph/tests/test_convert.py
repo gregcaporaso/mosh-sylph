@@ -21,6 +21,7 @@ from qiime2.plugin.testing import TestPluginBase
 from mosh_sylph import _examples as ex
 from mosh_sylph._convert import (_accession, _build_tables, _gtdb_id,
                                  _query_to_metadata, _read_profile)
+from mosh_sylph._formats import _read_sylph_tsv
 from mosh_sylph._formats import SylphProfileFormat, SylphQueryFormat
 
 
@@ -74,7 +75,7 @@ class ProfileParserTests(unittest.TestCase):
 
     def test_read(self):
         # TODO: this is AI-generated code; human review pending
-        per_sample = _read_profile(self.path)
+        per_sample = _read_profile(_read_sylph_tsv(self.path))
         self.assertEqual(sorted(per_sample), ['s1', 's2'])
         self.assertEqual(list(per_sample['s1'].index), ['GCF_1.1', 'GCA_2.1'])
         self.assertEqual(per_sample['s1'].loc['GCF_1.1', 'ani'], 99.1)
@@ -82,7 +83,7 @@ class ProfileParserTests(unittest.TestCase):
 
     def test_tables(self):
         # TODO: this is AI-generated code; human review pending
-        rel, seq, stats = _build_tables(_read_profile(self.path),
+        rel, seq, stats = _build_tables(_read_profile(_read_sylph_tsv(self.path)),
                                         ['s1', 's2', 's3'])
         self.assertEqual(list(rel.ids()), ['s1', 's2', 's3'])
         self.assertEqual(list(rel.ids(axis='observation')), ['GCA_2.1', 'GCF_1.1'])
@@ -107,12 +108,12 @@ class ProfileParserTests(unittest.TestCase):
             fh.write(_profile([('s2', 'GCA_2.1_genomic.fna.gz', 1, 1, 99, 'c')])
                      .split('\n', 1)[1])
         with self.assertRaisesRegex(ValueError, 'genome GCA_2.1 twice for sample s2'):
-            _read_profile(self.path)
+            _read_profile(_read_sylph_tsv(self.path))
 
     def test_profile_without_sketch(self):
         # TODO: this is AI-generated code; human review pending
         with self.assertRaisesRegex(ValueError, 's2 has a profile but no sketch'):
-            _build_tables(_read_profile(self.path), ['s1'])
+            _build_tables(_read_profile(_read_sylph_tsv(self.path)), ['s1'])
 
 
 class ProfileToTablesTests(TestPluginBase):
@@ -189,6 +190,7 @@ class QueryParserTests(unittest.TestCase):
                      'contig "3"\textra field\n')
         self.taxonomy = pd.Series({'RS_GCF_000001.1': 'd__Bacteria;g__A;s__A one',
                                    'RS_GCF_000002.1': 'd__Bacteria;g__B;s__B two'})
+        self.query = _read_sylph_tsv(self.path)
 
     def tearDown(self):
         # TODO: this is AI-generated code; human review pending
@@ -196,7 +198,7 @@ class QueryParserTests(unittest.TestCase):
 
     def test_rows(self):
         # TODO: this is AI-generated code; human review pending
-        df = _query_to_metadata(self.path, self.taxonomy).to_dataframe()
+        df = _query_to_metadata(self.query, self.taxonomy).to_dataframe()
         self.assertEqual(list(df.index), ['s1-GB_GCA_000003.1', 's1-RS_GCF_000001.1',
                                           's2-RS_GCF_000002.1'])
         self.assertEqual(df.loc['s1-GB_GCA_000003.1', 'naive-ani'], 96.0)
@@ -217,27 +219,27 @@ class QueryParserTests(unittest.TestCase):
 
     def test_without_taxonomy_and_ncbi_ids(self):
         # TODO: this is AI-generated code; human review pending
-        df = _query_to_metadata(self.path, gtdb_ids=False).to_dataframe()
+        df = _query_to_metadata(self.query, gtdb_ids=False).to_dataframe()
         self.assertEqual(list(df.index), ['s1-GCA_000003.1', 's1-GCF_000001.1',
                                           's2-GCF_000002.1'])
         self.assertTrue(df['taxonomy'].isna().all())
 
     def test_targets(self):
         # TODO: this is AI-generated code; human review pending
-        by_taxon = _query_to_metadata(self.path, self.taxonomy, targets=['g__B;'])
+        by_taxon = _query_to_metadata(self.query, self.taxonomy, targets=['g__B;'])
         self.assertEqual(list(by_taxon.to_dataframe().index), ['s2-RS_GCF_000002.1'])
-        by_genome = _query_to_metadata(self.path, self.taxonomy, targets=['GCF_00000'])
+        by_genome = _query_to_metadata(self.query, self.taxonomy, targets=['GCF_00000'])
         self.assertEqual(list(by_genome.to_dataframe().index),
                          ['s1-RS_GCF_000001.1', 's2-RS_GCF_000002.1'])
         with self.assertRaisesRegex(ValueError, 'no reported genome matches'):
-            _query_to_metadata(self.path, self.taxonomy, targets=['g__C;'])
+            _query_to_metadata(self.query, self.taxonomy, targets=['g__C;'])
 
     def test_empty(self):
         # TODO: this is AI-generated code; human review pending
         with open(self.path, 'w') as fh:
             fh.write(_QUERY_HEADER)
         with self.assertRaisesRegex(ValueError, 'no genome with enough'):
-            _query_to_metadata(self.path, self.taxonomy)
+            _query_to_metadata(_read_sylph_tsv(self.path), self.taxonomy)
 
 
 class QueryToMetadataTests(TestPluginBase):
