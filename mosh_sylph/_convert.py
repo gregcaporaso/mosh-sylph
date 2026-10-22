@@ -122,11 +122,15 @@ def profile_to_tables(profile: pd.DataFrame,
 
 
 def _query_to_metadata(df, taxonomy=None, gtdb_ids=True, targets=None):
+    # TODO: this is AI-generated code; human review pending (the containment
+    # index split into three numeric columns on 2026-10-22; had passed)
     """sylph query output (its DataFrame view) -> one row per sample and
     genome, ID '<sample>-<genome>' (sample-id is reserved for the ID header),
-    the taxonomy joined by genome ID when given, and the 5-95 percentile
-    interval split into two numeric columns (NA -> missing). `targets`: keep
-    only rows whose taxonomy string or genome ID contains one."""
+    the taxonomy joined by genome ID when given, the 5-95 percentile
+    interval split into two numeric columns (NA -> missing), and sylph's
+    Containment_ind fraction ('440/18523') split into contained-kmers,
+    total-kmers and their quotient containment-index. `targets`: keep only
+    rows whose taxonomy string or genome ID contains one."""
     if df.empty:
         raise ValueError('sylph query reported no genome with enough sampled '
                          'k-mers in any sample')
@@ -142,7 +146,10 @@ def _query_to_metadata(df, taxonomy=None, gtdb_ids=True, targets=None):
     interval = df['ANI_5-95_percentile'].str.split('-', n=1, expand=True)
     out['ani-5-percentile'] = pd.to_numeric(interval[0], errors='coerce')
     out['ani-95-percentile'] = pd.to_numeric(interval[1], errors='coerce')
-    out['containment-index'] = df['Containment_ind']
+    fraction = df['Containment_ind'].str.split('/', n=1, expand=True)
+    out['contained-kmers'] = pd.to_numeric(fraction[0], errors='coerce')
+    out['total-kmers'] = pd.to_numeric(fraction[1], errors='coerce')
+    out['containment-index'] = out['contained-kmers'] / out['total-kmers']
     out['naive-ani'] = pd.to_numeric(df['Naive_ANI'])
     if targets:
         lineage = out['taxonomy'].fillna('') + ' ' + out['genome']

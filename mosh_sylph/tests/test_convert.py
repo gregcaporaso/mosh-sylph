@@ -206,7 +206,7 @@ class QueryParserTests(unittest.TestCase):
         self.assertEqual(list(df.columns), [
             'sample', 'genome', 'taxonomy', 'adjusted-ani',
             'effective-coverage', 'ani-5-percentile', 'ani-95-percentile',
-            'containment-index', 'naive-ani'])
+            'contained-kmers', 'total-kmers', 'containment-index', 'naive-ani'])
         self.assertEqual(df.loc['s2-RS_GCF_000002.1', 'taxonomy'],
                          'd__Bacteria;g__B;s__B two')
         self.assertEqual(df.loc['s2-RS_GCF_000002.1', 'adjusted-ani'], 97.5)
@@ -214,7 +214,13 @@ class QueryParserTests(unittest.TestCase):
         self.assertEqual(df.loc['s2-RS_GCF_000002.1', 'ani-5-percentile'], 96.1)
         self.assertEqual(df.loc['s2-RS_GCF_000002.1', 'ani-95-percentile'], 101.2)
         self.assertTrue(np.isnan(df.loc['s1-RS_GCF_000001.1', 'ani-5-percentile']))
-        self.assertEqual(df.loc['s1-RS_GCF_000001.1', 'containment-index'], '270/270')
+        self.assertEqual(df.loc['s1-RS_GCF_000001.1', 'contained-kmers'], 270)
+        self.assertEqual(df.loc['s1-RS_GCF_000001.1', 'total-kmers'], 270)
+        self.assertEqual(df.loc['s1-RS_GCF_000001.1', 'containment-index'], 1.0)
+        self.assertEqual(df.loc['s1-GB_GCA_000003.1', 'contained-kmers'], 90)
+        self.assertEqual(df.loc['s1-GB_GCA_000003.1', 'total-kmers'], 300)
+        self.assertAlmostEqual(df.loc['s1-GB_GCA_000003.1', 'containment-index'],
+                               0.3)
         self.assertEqual(df.loc['s1-RS_GCF_000001.1', 'naive-ani'], 100.0)
 
     def test_without_taxonomy_and_ncbi_ids(self):
@@ -260,7 +266,10 @@ class QueryToMetadataTests(TestPluginBase):
             row = df.loc[f"{r['Sample_file']}-{genome}"]
             self.assertEqual(row['adjusted-ani'], float(r['Adjusted_ANI']))
             self.assertEqual(row['effective-coverage'], float(r['Eff_cov']))
-            self.assertEqual(row['containment-index'], r['Containment_ind'])
+            found, total = (int(x) for x in r['Containment_ind'].split('/'))
+            self.assertEqual(row['contained-kmers'], found)
+            self.assertEqual(row['total-kmers'], total)
+            self.assertAlmostEqual(row['containment-index'], found / total)
             self.assertEqual(row['naive-ani'], float(r['Naive_ANI']))
             low, high = r['ANI_5-95_percentile'].split('-')
             self.assertEqual(row['ani-5-percentile'], float(low))

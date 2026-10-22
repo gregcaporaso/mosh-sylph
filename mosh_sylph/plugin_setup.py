@@ -293,7 +293,11 @@ plugin.methods.register_function(
                           'effective-coverage, ani-5-percentile and '
                           'ani-95-percentile (sylph\'s 5-95 percentile '
                           'interval, missing when sylph reports NA), '
-                          'containment-index and naive-ani.'},
+                          'contained-kmers and total-kmers (the numerator '
+                          'and denominator of sylph\'s Containment_ind: the '
+                          'genome\'s sampled k-mers found in the sample, and '
+                          'all of them), containment-index (their quotient, '
+                          '0 to 1) and naive-ani.'},
     name='Metadata from a sylph query',
     description=(
         'Tabulates sylph query output, with a taxonomy joined by genome ID '

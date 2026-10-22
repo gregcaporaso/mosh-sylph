@@ -24,7 +24,7 @@ Both tables are sylph's numbers divided by 100: taxonomic abundance is the genom
 `stats` holds, per sample, `genomes`, `genera`, `median-ani` and `unknown-share` (the share of reads assigned to no database genome, meaningful for profiles made with `--p-estimate-unknown`).
 A sample in which sylph detected nothing gets an all-zero column and an unknown share of 1; the sample list comes from the sketches.
 
-`query-to-metadata` gives one row per sample and genome (ID `<sample-id>-<accession>`) with the columns `sample`, `accession`, `taxonomy`, `adjusted-ani`, `effective-coverage`, `ani-5-percentile`, `ani-95-percentile`, `containment-index` and `naive-ani`.
+`query-to-metadata` gives one row per sample and genome (ID `<sample-id>-<genome>`) with the columns `sample`, `genome`, `taxonomy`, `adjusted-ani`, `effective-coverage`, `ani-5-percentile`, `ani-95-percentile`, `contained-kmers`, `total-kmers`, `containment-index` (sylph's `Containment_ind` fraction split into its numerator, denominator and quotient) and `naive-ani`, all numeric but the first three.
 Below about 0.1x effective coverage the adjusted ANI and its interval overshoot (the 95th percentile can exceed 100).
 
 ## Types and formats
