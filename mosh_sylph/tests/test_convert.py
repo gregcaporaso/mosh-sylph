@@ -87,8 +87,10 @@ class ProfileParserTests(unittest.TestCase):
         self.assertEqual(list(rel.ids()), ['s1', 's2', 's3'])
         self.assertEqual(list(rel.ids(axis='observation')), ['GCA_2.1', 'GCF_1.1'])
         self.assertAlmostEqual(rel.get_value_by_ids('GCF_1.1', 's1'), 0.6)
-        self.assertAlmostEqual(seq.get_value_by_ids('GCF_1.1', 's1'), 0.875)
-        self.assertAlmostEqual(seq.get_value_by_ids('GCA_2.1', 's2'), 1.0)
+        # sylph's numbers divided by 100, not renormalized: s1 sums to 0.8
+        self.assertAlmostEqual(seq.get_value_by_ids('GCF_1.1', 's1'), 0.7)
+        self.assertAlmostEqual(seq.get_value_by_ids('GCA_2.1', 's2'), 0.5)
+        self.assertAlmostEqual(seq.sum(axis='sample')[0], 0.8)
         self.assertEqual(list(stats.columns),
                          ['genomes', 'median-ani', 'unknown-share'])
         self.assertEqual(stats.loc['s1', 'genomes'], 2)
@@ -145,8 +147,7 @@ class ProfileToTablesTests(TestPluginBase):
                     r['Taxonomic_abundance'] / 100, places=5)
                 self.assertAlmostEqual(
                     seq.get_value_by_ids(r['gtdb-id'], sample),
-                    r['Sequence_abundance'] / rows['Sequence_abundance'].sum(),
-                    places=5)
+                    r['Sequence_abundance'] / 100, places=5)
         self.assertEqual(stats.loc['73F84', 'genomes'], 0)
         self.assertEqual(stats.loc['73F84', 'unknown-share'], 1.0)
         self.assertEqual(stats.loc['DB47D', 'genomes'], 2)

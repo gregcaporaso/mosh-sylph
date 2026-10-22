@@ -9,11 +9,12 @@
 """Conversions of sylph outputs to stock QIIME 2 types.
 
 profile-to-tables turns sylph profile output into two genome-keyed relative
-tables: taxonomic abundance (genome-size corrected, roughly a share of cells)
-and sequence abundance (share of reads, renormalized over the detected
-genomes, so the unknown share that sylph profile -u estimates is reported per
-sample instead of as a missing remainder); the genome IDs can take GTDB's
-prefixed form, so the tables key like GTDB's taxonomy and trees.
+tables, sylph's own numbers divided by 100: taxonomic abundance (genome-size
+corrected, roughly a share of cells; sums to 1 over the detected genomes)
+and sequence abundance (share of reads; with sylph profile -u it sums to the
+classified share, and the unknown share is reported per sample in the
+stats); the genome IDs can take GTDB's prefixed form, so the tables key like
+GTDB's taxonomy and trees.
 query-to-metadata turns sylph query output into one metadata row per sample
 and genome, with a taxonomy joined when given.
 """
@@ -62,18 +63,15 @@ def _build_tables(per_sample, samples):
                           0.0, round(1 - df['seq'].sum() / 100, 6)))})
     features = sorted({f for df in per_sample.values() for f in df.index})
 
-    def _table(col, renormalize):
+    def _table(col):
         data = np.zeros((len(features), len(samples)))
         for j, s in enumerate(samples):
-            v = per_sample[s][col].reindex(features).fillna(0.0).to_numpy() / 100
-            # REVIEW QUESTION: why do we renormalize? any why only rel, not seq?
-            if renormalize and v.sum() > 0:
-                v = v / v.sum()
-            data[:, j] = v
+            data[:, j] = (per_sample[s][col].reindex(features).fillna(0.0)
+                          .to_numpy() / 100)
         return biom.Table(data, features, samples)
 
     md = pd.DataFrame(stats).set_index('sample-id')
-    return _table('rel', False), _table('seq', True), md
+    return _table('rel'), _table('seq'), md
 
 
 def _gtdb_id(accession):

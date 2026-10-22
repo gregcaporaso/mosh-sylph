@@ -239,8 +239,12 @@ plugin.methods.register_function(
                                'proportions summing to 1 per sample with a '
                                'detection.',
         'sequence_abundance': 'Share of reads assigned to each genome '
-                              '(sylph\'s Sequence_abundance), renormalized '
-                              'to sum to 1 over the detected genomes.',
+                              '(sylph\'s Sequence_abundance divided by 100). '
+                              'With estimate-unknown a sample sums to its '
+                              'classified share, not to 1: the remainder is '
+                              'the unknown-share in stats (see "Estimating '
+                              'percentage of unknown reads" at '
+                              'https://sylph-docs.github.io/sylph-cookbook/).',
         'stats': 'Per sample: genomes detected, median ANI of the detected '
                  'genomes, and unknown-share, the share of reads not '
                  'assigned to any database genome (meaningful only for a '

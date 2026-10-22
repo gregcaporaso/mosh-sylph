@@ -20,7 +20,7 @@ The tutorial that uses it, integrating a sylph metagenome profile with a 16S pro
 The sylph options keep sylph's names and defaults; `rachis sylph <action> --help` gives each one's flag.
 
 `profile-to-tables` keys its tables by GTDB genome ID (`RS_GCF_...`, `GB_GCA_...`, from the genome file names of the authors' GTDB databases; `--p-no-gtdb-ids` keeps the NCBI accession or, for other databases, the file name).
-Taxonomic abundance is sylph's genome-size-corrected abundance as proportions; sequence abundance is the share of reads, renormalized over the detected genomes.
+Both tables are sylph's numbers divided by 100: taxonomic abundance is the genome-size-corrected abundance (summing to 1 over the detected genomes), sequence abundance the share of reads, which with `--p-estimate-unknown` sums to the classified share rather than to 1 (the remainder is `unknown-share` in `stats`; see [the sylph cookbook](https://sylph-docs.github.io/sylph-cookbook/) on estimating the unknown percentage).
 `stats` holds, per sample, `genomes`, `genera`, `median-ani` and `unknown-share` (the share of reads assigned to no database genome, meaningful for profiles made with `--p-estimate-unknown`).
 A sample in which sylph detected nothing gets an all-zero column and an unknown share of 1; the sample list comes from the sketches.
 
