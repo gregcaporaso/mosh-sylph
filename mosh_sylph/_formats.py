@@ -15,8 +15,26 @@ import subprocess
 from qiime2.plugin import model
 
 
+def _inspect(path, what):
+    # TODO: this is AI-generated code; human review pending
+    """Raise ValidationError unless the installed sylph can read the file:
+    `sylph inspect` (its YAML report is discarded; it reads the whole file,
+    so for a 20 GB database this takes minutes and the database's size in
+    memory). The error carries the last line sylph printed."""
+    run = subprocess.run(['sylph', 'inspect', path], stdout=subprocess.DEVNULL,
+                         stderr=subprocess.PIPE, text=True)
+    if run.returncode != 0:
+        said = [line for line in run.stderr.splitlines()
+                if line and not line.startswith('note:')]
+        raise model.ValidationError(
+            f'sylph inspect cannot read this {what}: '
+            + (said[-1] if said else f'exit status {run.returncode}'))
+
+
 class SylphDatabaseFormat(model.BinaryFileFormat):
-    """A two-stage sylph genome database (.syl2db, sylph >= 1.0.0)."""
+    """A two-stage sylph genome database (.syl2db, sylph >= 1.0.0): the SY2D
+    magic at every level; at level max (imports) `sylph inspect` decides
+    whether the installed sylph can read it, which reads the whole file."""
 
     def _validate_(self, level):
         # TODO: this is AI-generated code; human review pending
@@ -24,6 +42,8 @@ class SylphDatabaseFormat(model.BinaryFileFormat):
             if fh.read(4) != b'SY2D':
                 raise model.ValidationError(
                     'not a two-stage sylph database (.syl2db)')
+        if level == 'max':
+            _inspect(str(self), 'database')
 
 
 SylphDatabaseDirFmt = model.SingleFileDirectoryFormat(
@@ -37,18 +57,12 @@ class SylphSketchFormat(model.BinaryFileFormat):
     which sylph itself wrote) only an empty file is rejected."""
 
     def _validate_(self, level):
-        # TODO: this is AI-generated code; human review pending
+        # TODO: this is AI-generated code; human review pending (the body
+        # moved into _inspect on 2026-10-22, after this function had passed)
         if os.path.getsize(str(self)) == 0:
             raise model.ValidationError('empty sylph sketch')
         if level == 'max':
-            run = subprocess.run(['sylph', 'inspect', str(self)],
-                                 capture_output=True, text=True)
-            if run.returncode != 0:
-                said = [line for line in run.stderr.splitlines()
-                        if line and not line.startswith('note:')]
-                raise model.ValidationError(
-                    'sylph inspect cannot read this sketch: '
-                    + (said[-1] if said else f'exit status {run.returncode}'))
+            _inspect(str(self), 'sketch')
 
 
 class SylphSketchesDirFmt(model.DirectoryFormat):
@@ -59,11 +73,9 @@ class SylphSketchesDirFmt(model.DirectoryFormat):
 
     @sketches.set_path_maker
     def _sketch_path(self, sample_id):
-        # TODO: this is AI-generated code; human review pending
         return f'{sample_id}.paired.sylsp'
 
     def sample_paths(self):
-        # TODO: this is AI-generated code; human review pending
         """{sample id: sketch path}, sorted by sample id."""
         suffix = '.paired.sylsp'
         return {f[:-len(suffix)]: os.path.join(str(self), f)
@@ -75,7 +87,6 @@ class _SylphTSVFormat(model.TextFileFormat):
     HEADER = ()
 
     def _validate_(self, level):
-        # TODO: this is AI-generated code; human review pending
         with open(str(self)) as fh:
             columns = fh.readline().rstrip('\n').split('\t')
         if tuple(columns[:len(self.HEADER)]) != self.HEADER:

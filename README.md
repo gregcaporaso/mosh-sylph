@@ -62,7 +62,7 @@ rachis tools import \
   --input-path globdb-r232.syl2db \
   --output-path sylph-globdb-r232.qza
 ```
-A sketch file has no header to recognize it by, so importing one runs `sylph inspect` on it (the full validation level); an action's own sketches are only checked for emptiness.
+Importing a database or a sketch runs `sylph inspect` on the file (the full validation level), which reads it whole: minutes and the database's size in memory for the 20 GB GTDB database; an action's own outputs are only checked for the `SY2D` magic (databases) or emptiness (sketches), since sylph wrote them.
 
 ## Typical use
 

@@ -77,6 +77,18 @@ class SylphDatabaseFormatTests(TestPluginBase):
             with self.assertRaisesRegex(ValidationError, 'two-stage'):
                 SylphDatabaseFormat(fh.name, mode='r').validate()
 
+    def test_not_a_database_behind_the_magic(self):
+        # TODO: this is AI-generated code; human review pending
+        # the magic alone passes at min; sylph inspect rejects it at max
+        with tempfile.NamedTemporaryFile(suffix='.syl2db') as fh:
+            fh.write(b'SY2D' + b'x' * 100)
+            fh.flush()
+            fmt = SylphDatabaseFormat(fh.name, mode='r')
+            fmt.validate(level='min')
+            with self.assertRaisesRegex(
+                    ValidationError, 'sylph inspect cannot read this database'):
+                fmt.validate(level='max')
+
 
 def _sylph(*args):
     subprocess.run(['sylph', *args], check=True, stdout=subprocess.DEVNULL,
