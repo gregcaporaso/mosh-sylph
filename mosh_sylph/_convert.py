@@ -122,8 +122,6 @@ def profile_to_tables(profile: pd.DataFrame,
 
 
 def _query_to_metadata(df, taxonomy=None, gtdb_ids=True, targets=None):
-    # TODO: this is AI-generated code; human review pending (the containment
-    # index split into three numeric columns on 2026-10-22; had passed)
     """sylph query output (its DataFrame view) -> one row per sample and
     genome, ID '<sample>-<genome>' (sample-id is reserved for the ID header),
     the taxonomy joined by genome ID when given, the 5-95 percentile
