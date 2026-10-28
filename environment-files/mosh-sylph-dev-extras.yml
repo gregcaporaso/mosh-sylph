@@ -1,11 +1,11 @@
-# What mosh-sylph needs on top of the QIIME 2 "tiny" distribution's development
-# environment: sylph, and the test and lint tools. The base
-# environment comes from the distribution's dev/latest/passed environment file,
-# as in https://develop.qiime2.org/en/stable/plugins/how-to-guides/set-up-development-environment.html;
-# this file is applied to it with `conda env update` (README, "Development
-# installation"). The same file layers the plugin onto the moshpit or qiime2
-# distribution's development environment. 2026-10-16: replaced the
-# metapackage-based file (2026.10 is unreleased).
+# What mosh-sylph needs on top of the QIIME 2 "tiny" distribution's released
+# 2026.10 environment (https://library.qiime2.org/quickstart/tiny): sylph,
+# and the test and lint tools. Applied with
+# `conda env update -n rachis-tiny-2026.10 --file <this file>`, then
+# `make dev`. The same file layers the plugin onto the qiime2 or moshpit
+# distribution's environment; CI tests tiny and qiime2 this way
+# (.github/workflows/ci.yml). 2026-10-28: the base moved from the
+# distribution's dev/latest/passed file to the release.
 channels:
 - conda-forge
 - bioconda

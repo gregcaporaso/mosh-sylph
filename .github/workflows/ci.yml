@@ -16,7 +16,7 @@ jobs:
         os: [ubuntu-latest, macos-15-intel]
         # tiny: the plugin's declared dependencies are enough on their own;
         # qiime2: the plugin installs and runs beside the full distribution,
-        # the environment the thermo-hec tutorial uses (2026-10-23).
+        # the environment the thermo-hec tutorial uses.
         distribution: [tiny, qiime2]
         include:
           - os: ubuntu-latest
@@ -28,24 +28,24 @@ jobs:
     - name: checkout source
       uses: actions/checkout@v6.0.2
 
-    # The base environment is a distribution's development environment, as in
-    # the QIIME 2 dev-environment guide; the plugin's extras are layered on
-    # with conda env update (README, "Development installation").
-    - name: fetch the ${{ matrix.distribution }} distribution's dev environment file
+    # The base environment is the distribution's released 2026.10 environment,
+    # the file behind https://library.qiime2.org/quickstart; the plugin's
+    # extras are layered on with conda env update (2026-10-28, release day).
+    - name: fetch the ${{ matrix.distribution }} distribution's 2026.10 environment file
       run: |
-        curl -sSL -o rachis-dev.yml \
-          https://raw.githubusercontent.com/qiime2/distributions/dev/latest/passed/rachis-${{ matrix.distribution }}-${{ matrix.subdir }}-conda.yml
+        curl -sSL -o rachis-2026.10.yml \
+          https://raw.githubusercontent.com/qiime2/distributions/refs/heads/dev/2026.10/${{ matrix.distribution }}/released/rachis-${{ matrix.distribution }}-${{ matrix.subdir }}-conda.yml
 
     - name: Set up Conda
       uses: qiime2-cutlery/setup-miniconda@v3
       with:
-        activate-environment: mosh-sylph-dev
-        environment-file: rachis-dev.yml
+        activate-environment: mosh-sylph-2026.10
+        environment-file: rachis-2026.10.yml
         auto-activate-base: false
 
     - name: Add the plugin's extras
       shell: bash -l {0}
-      run: conda env update -n mosh-sylph-dev --file environment-files/mosh-sylph-dev-extras.yml
+      run: conda env update -n mosh-sylph-2026.10 --file environment-files/mosh-sylph-dev-extras.yml
 
     - name: Install plugin
       shell: bash -l {0}
