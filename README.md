@@ -8,11 +8,12 @@ Each [Action](https://news.rachis.org/en/latest/glossary#term-action) runs one s
 Two additional conversion actions turn those outputs into `FeatureTable[RelativeFrequency]` and `ImmutableMetadata` artifacts for easy use with QIIME 2 and MOSHPIT.
 
 See the [thermo-hec-tutorial](https://gregcaporaso.github.io/thermo-hec-tutorial/) ([source](https://github.com/gregcaporaso/thermo-hec-tutorial)) for documentation, including installation and usage instructions.
-Run `rachis sylph <action> --help` after installation to learn what actions are available.
+Run `rachis sylph --help` after installation to learn what actions are available, and `rachis sylph <action> --help` for the details of one.
 
 Questions and bug reports should be directed to the [QIIME 2 Forum](https://forum.qiime2.org).
 
 ## AI disclosure
+
 The code, tests and usage examples were written by Claude and reviewed function by function by @gregcaporaso; the commit history says what was requested and what the assistant implemented.
 As of this writing (28 October 2026) all code has been reviewed, while usage example and unit test review is still pending.
 Functions that are unreviewed are tagged in the [source code](https://github.com/gregcaporaso/mosh-sylph) with the comment line:
@@ -21,4 +22,4 @@ Functions that are unreviewed are tagged in the [source code](https://github.com
 # TODO: this is AI-generated code; human review pending
 ```
 
-[This search](https://github.com/search?q=repo%3Agregcaporaso%2Fmosh-sylph++%23+TODO%3A+this+is+AI-generated+code%3B+human+review+pending&type=code) will direct you to all of those lines.
+[This search](https://github.com/search?q=repo%3Agregcaporaso%2Fmosh-sylph+%23+TODO%3A+this+is+AI-generated+code%3B+human+review+pending&type=code) will direct you to all of those lines.
