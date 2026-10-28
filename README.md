@@ -1,6 +1,6 @@
 # mosh-sylph: a [rachis](https://rachis.org) plugin for use with QIIME 2 and/or MOSHPIT
 
-> ⚠️ This plugin is in early testing (alpha release) phase. Interfaces will almost certainly change. Be skeptical of results - testing is still in progress.
+⚠️ This plugin is in early testing (alpha release) phase. Interfaces will almost certainly change. Be skeptical of results - testing is still in progress.
 
 `mosh-sylph` wraps the [sylph](https://sylph-docs.github.io/) metagenome profiler (Shaw & Yu, *Nature Biotechnology* 2025).
 It is designed to be an extremely thin wrapper around sylph, supporting integration with QIIME 2 and MOSHPIT, and adding [data provenance tracking](https://news.rachis.org/en/latest/glossary#term-data-provenance).
@@ -8,7 +8,7 @@ Each [Action](https://news.rachis.org/en/latest/glossary#term-action) runs one s
 Two additional conversion actions turn those outputs into `FeatureTable[RelativeFrequency]` and `ImmutableMetadata` artifacts for easy use with QIIME 2 and MOSHPIT.
 
 See the [thermo-hec-tutorial](https://gregcaporaso.github.io/thermo-hec-tutorial/) ([source](https://github.com/gregcaporaso/thermo-hec-tutorial)) for documentation, including installation and usage instructions.
-Run `rachis sylph --help` after installation to learn what actions are available, and `rachis sylph <action> --help` for the details of one.
+Run `rachis sylph --help` after installation to learn what actions are available.
 
 Questions and bug reports should be directed to the [QIIME 2 Forum](https://forum.qiime2.org).
 
