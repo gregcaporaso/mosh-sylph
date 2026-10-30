@@ -3,8 +3,8 @@
 ⚠️ This plugin is in early testing (alpha release) phase. Interfaces will almost certainly change. Be skeptical of results - testing is still in progress.
 
 `mosh-sylph` wraps the [sylph](https://sylph-docs.github.io/) metagenome profiler (Shaw & Yu, *Nature Biotechnology* 2025).
-It is designed to be an extremely thin wrapper around sylph, supporting integration with QIIME 2 and MOSHPIT, and adding [data provenance tracking](https://news.rachis.org/en/latest/glossary#term-data-provenance).
-Each [Action](https://news.rachis.org/en/latest/glossary#term-action) runs one sylph command and returns the tool's own output as a [`rachis` Artifact](https://news.rachis.org/en/latest/glossary#term-artifact).
+It is designed to be an extremely thin wrapper around sylph, supporting integration with [QIIME 2](https://news.rachis.org/en/latest/glossary/#term-qiime-2) and [MOSHPIT](https://news.rachis.org/en/latest/glossary/#term-moshpit), and adding [data provenance tracking](https://news.rachis.org/en/latest/glossary/#term-data-provenance).
+Each [Action](https://news.rachis.org/en/latest/glossary/#term-action) runs one sylph command and returns the tool's own output as a [`rachis` Artifact](https://news.rachis.org/en/latest/glossary/#term-artifact).
 Two additional conversion actions turn those outputs into `FeatureTable[RelativeFrequency]` and `ImmutableMetadata` artifacts for easy use with QIIME 2 and MOSHPIT.
 
 See the [q2-confluence-tutorial](https://gregcaporaso.github.io/q2-confluence-tutorial/) ([source](https://github.com/gregcaporaso/q2-confluence-tutorial)) for documentation, including installation and usage instructions.
