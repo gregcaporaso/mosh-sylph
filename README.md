@@ -12,6 +12,12 @@ Run `rachis sylph --help` after installation to learn what actions are available
 
 Questions and bug reports should be directed to the [QIIME 2 Forum](https://forum.qiime2.org).
 
+## sylph database notes
+
+The plugin accepts only sylph's two-stage database format (`.syl2db`), which the sylph authors publish for GTDB r226 and r232; those are the releases `fetch-database` offers.
+[GlobDB](https://globdb.org) publishes sylph databases for its r226 and r232 releases as well, but in the single-stage format so far; `fetch-database` will offer them when two-stage builds become available.
+Until then, a GlobDB database can be used by downloading it, converting it with `sylph convert-db-two-screen`, and importing the result (`qiime tools import --type SylphTwoStageDatabase --input-format SylphTwoStageDatabaseFormat`); its genomes are not NCBI assemblies, so `profile-to-tables` would run with `--p-no-gtdb-ids`, and taxonomies and trees used for downstream analysis would need to be GlobDB's.
+
 ## AI disclosure
 
 The code, tests and usage examples were written by Claude and reviewed function by function by @gregcaporaso; the commit history says what was requested and what the assistant implemented.
