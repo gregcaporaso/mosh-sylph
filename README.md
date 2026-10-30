@@ -7,7 +7,7 @@ It is designed to be an extremely thin wrapper around sylph, supporting integrat
 Each [Action](https://news.rachis.org/en/latest/glossary#term-action) runs one sylph command and returns the tool's own output as a [`rachis` Artifact](https://news.rachis.org/en/latest/glossary#term-artifact).
 Two additional conversion actions turn those outputs into `FeatureTable[RelativeFrequency]` and `ImmutableMetadata` artifacts for easy use with QIIME 2 and MOSHPIT.
 
-See the [thermo-hec-tutorial](https://gregcaporaso.github.io/thermo-hec-tutorial/) ([source](https://github.com/gregcaporaso/thermo-hec-tutorial)) for documentation, including installation and usage instructions.
+See the [q2-confluence-tutorial](https://gregcaporaso.github.io/q2-confluence-tutorial/) ([source](https://github.com/gregcaporaso/q2-confluence-tutorial)) for documentation, including installation and usage instructions.
 Run `rachis sylph --help` after installation to learn what actions are available.
 
 Questions and bug reports should be directed to the [QIIME 2 Forum](https://forum.qiime2.org).

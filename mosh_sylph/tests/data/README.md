@@ -5,7 +5,7 @@ Built on 2026-10-16 with sylph 1.0.0.
 
 ## `fixture.syl2db`
 
-A two-stage sylph database of three GTDB r232 species representatives that the [thermo-hec-tutorial](https://github.com/gregcaporaso/thermo-hec-tutorial) samples contain, downloaded from NCBI and named as in the authors' GTDB databases (`<accession>_genomic.fna.gz`):
+A two-stage sylph database of three GTDB r232 species representatives that the [q2-confluence-tutorial](https://github.com/gregcaporaso/q2-confluence-tutorial) samples contain, downloaded from NCBI and named as in the authors' GTDB databases (`<accession>_genomic.fna.gz`):
 
 | Accession | GTDB r232 species | Size |
 |---|---|---|
