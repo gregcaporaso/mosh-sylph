@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use mosh-sylph, please cite sylph (Shaw & Yu 2025, listed under references) and this plugin as below."
+title: "mosh-sylph: thin wrappers of the sylph metagenome profiler for QIIME 2 and MOSHPIT"
+authors:
+  - family-names: Caporaso
+    given-names: Greg
+repository-code: "https://github.com/gregcaporaso/mosh-sylph"
+license: BSD-3-Clause
+references:
+  - type: article
+    title: "Rapid species-level metagenome profiling and containment estimation with sylph"
+    authors:
+      - family-names: Shaw
+        given-names: Jim
+      - family-names: Yu
+        given-names: Yun William
+    journal: "Nature Biotechnology"
+    volume: 43
+    start: 1348
+    end: 1359
+    year: 2025
+    doi: 10.1038/s41587-024-02412-y
