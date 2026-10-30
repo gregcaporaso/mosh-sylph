@@ -3,7 +3,8 @@ message: "If you use mosh-sylph, please cite sylph (Shaw & Yu 2025, listed under
 title: "mosh-sylph: thin wrappers of the sylph metagenome profiler for QIIME 2 and MOSHPIT"
 authors:
   - family-names: Caporaso
-    given-names: Greg
+    given-names: "J. Gregory"
+    orcid: "https://orcid.org/0000-0002-8865-1670"
 repository-code: "https://github.com/gregcaporaso/mosh-sylph"
 license: BSD-3-Clause
 references:
